@@ -342,4 +342,3 @@ healthchecksdb
 # Mac OS
 .DS_Store
 .vscode
-/src/FacilityOS.Functions/local.settings.json
