@@ -1,4 +1,4 @@
-namespace MoneyControl;
+namespace MoneyControl.Server;
 
 public class Program
 {

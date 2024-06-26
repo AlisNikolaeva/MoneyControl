@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace MoneyControl.Controllers;
+namespace MoneyControl.Server.Controllers;
 
 [ApiController]
 [Route("[controller]")]
