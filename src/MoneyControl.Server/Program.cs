@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using MoneyControl.Infrastructure;
+
 namespace MoneyControl.Server;
 
 public class Program
@@ -10,6 +13,9 @@ public class Program
         builder.Services.AddControllers();
         builder.Services.AddRazorPages();
         builder.Services.AddHttpContextAccessor();
+
+        var connection = builder.Configuration.GetConnectionString("DefaultConnection");
+        builder.Services.AddDbContext<ApplicationDbContext>(option => option.UseSqlServer(connection));
 
         var app = builder.Build();
 
