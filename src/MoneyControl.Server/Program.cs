@@ -1,5 +1,10 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using MoneyControl.Application.Handlers.CreateAccount;
+using MoneyControl.Application.Handlers.UpdateAccount;
 using MoneyControl.Infrastructure;
+using MoneyControl.Server.Validators;
 
 namespace MoneyControl.Server;
 
@@ -13,6 +18,10 @@ public class Program
         builder.Services.AddControllers();
         builder.Services.AddRazorPages();
         builder.Services.AddHttpContextAccessor();
+
+        builder.Services.AddScoped<IValidator<CreateAccountCommand>, CreateAccountCommandValidator>();
+        builder.Services.AddScoped<IValidator<UpdateAccountCommand>, UpdateAccountCommandValidator>();
+        builder.Services.AddFluentValidationAutoValidation();
 
         var connection = builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<ApplicationDbContext>(option => option.UseSqlServer(connection));

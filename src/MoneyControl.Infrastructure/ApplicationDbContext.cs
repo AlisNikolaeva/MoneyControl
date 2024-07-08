@@ -1,14 +1,14 @@
 using Microsoft.EntityFrameworkCore;
-using MoneyControl.Core;
+using MoneyControl.Core.Entities;
 using MoneyControl.Infrastructure.Configurations;
-using Transaction = MoneyControl.Core.Transaction;
 
 namespace MoneyControl.Infrastructure;
 
+
 public class ApplicationDbContext : DbContext
 {
-    public DbSet<Account> Accounts { get; set; } = null!;
-    public DbSet<Transaction> Transactions { get; set; } = null!;
+    public DbSet<AccountEntity> Accounts { get; set; } = null!;
+    public DbSet<TransactionEntity> Transactions { get; set; } = null!;
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> option) : base(option)
     { }

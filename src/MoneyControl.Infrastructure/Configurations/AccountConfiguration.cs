@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using MoneyControl.Core;
+using MoneyControl.Core.Entities;
 
 namespace MoneyControl.Infrastructure.Configurations;
 
-public class AccountConfiguration : IEntityTypeConfiguration<Account>
+public class AccountConfiguration : IEntityTypeConfiguration<AccountEntity>
 {
-    public void Configure(EntityTypeBuilder<Account> builder)
+    public void Configure(EntityTypeBuilder<AccountEntity> builder)
     {
         builder.ToTable("Account");
         builder.HasKey(x => x.Id);
