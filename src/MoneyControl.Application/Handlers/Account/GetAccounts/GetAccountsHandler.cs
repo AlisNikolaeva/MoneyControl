@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MoneyControl.Infrastructure;
 using MoneyControl.Shared;
 
-namespace MoneyControl.Application.Handlers.GetAccounts;
+namespace MoneyControl.Application.Handlers.Account.GetAccounts;
 
 public class GetAccountsHandler : IRequestHandler<GetAccountsCommand, IEnumerable<AccountModel>>
 {
@@ -16,7 +16,7 @@ public class GetAccountsHandler : IRequestHandler<GetAccountsCommand, IEnumerabl
     
     public async Task<IEnumerable<AccountModel>> Handle(GetAccountsCommand request, CancellationToken cancellationToken)
     {
-        var entities = await _dbContext.Accounts.ToListAsync(cancellationToken: cancellationToken);
+        var entities = await _dbContext.Accounts.ToListAsync(cancellationToken);
         var accounts = new List<AccountModel>();
         foreach (var item in entities)
         {

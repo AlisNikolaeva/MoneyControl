@@ -1,15 +1,15 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
-using MoneyControl.Application.Handlers.CreateAccount;
+using MoneyControl.Application.Handlers.Transaction.CreateTransaction;
 using MoneyControl.Core.Entities;
 using MoneyControl.Infrastructure;
 using NUnit.Framework;
 using Testcontainers.MsSql;
 
-namespace MoneyControl.Application.UnitTests.Handlers.CreateAccount;
+namespace MoneyControl.Application.UnitTests.Handlers.Transaction.CreateTransaction;
 
-public class CreateAccountHandlerTests
+public class CreateTransactionHandlerTests
 {
     private MsSqlContainer _msSqlContainer;
     
@@ -42,12 +42,21 @@ public class CreateAccountHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-        var request = new CreateAccountCommand
+        await dbContext.Accounts.AddAsync(new AccountEntity
         {
             Name = "Account_test",
+            Balance = 0,
             Currency = "USD"
+        });
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+        
+        var request = new CreateTransactionCommand
+        {
+            AccountId = 1,
+            Sum = 10,
+            DateUtc = DateTime.Now
         };
-        var handler = new CreateAccountHandler(dbContext);
+        var handler = new CreateTransactionHandler(dbContext);
 
         // Act
         var result = await handler.Handle(request, CancellationToken.None);
@@ -58,7 +67,7 @@ public class CreateAccountHandlerTests
     }
     
     [Test]
-    public async Task Handle_WhenExists_ShouldThrowException()
+    public async Task Handle_WhenNoAccount_ShouldThrowException()
     {
         // Arrange
         var applicationOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -73,24 +82,18 @@ public class CreateAccountHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-        await dbContext.Accounts.AddAsync(new AccountEntity
-        {
-            Name = "Account_test",
-            Balance = 0,
-            Currency = "USD"
-        });
-        await dbContext.SaveChangesAsync(CancellationToken.None);
         
-        var request = new CreateAccountCommand
+        var request = new CreateTransactionCommand
         {
-            Name = "Account_test",
-            Currency = "USD"
+            AccountId = 1,
+            Sum = 10,
+            DateUtc = DateTime.Now
         };
-        var handler = new CreateAccountHandler(dbContext);
-
+        var handler = new CreateTransactionHandler(dbContext);
+    
         // Act
         async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);
-
+    
         // Assert
         Assert.ThrowsAsync<Exception>(TestDelegate);
         await dbContext.DisposeAsync();

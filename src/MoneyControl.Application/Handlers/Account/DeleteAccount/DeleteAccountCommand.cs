@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MoneyControl.Application.Handlers.DeleteAccount;
+namespace MoneyControl.Application.Handlers.Account.DeleteAccount;
 
 public class DeleteAccountCommand : IRequest
 {

@@ -1,7 +1,7 @@
 using MediatR;
 using MoneyControl.Infrastructure;
 
-namespace MoneyControl.Application.Handlers.UpdateAccount;
+namespace MoneyControl.Application.Handlers.Account.UpdateAccount;
 
 public class UpdateAccountHandler : IRequestHandler<UpdateAccountCommand>
 {

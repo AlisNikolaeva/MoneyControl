@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MoneyControl.Application.Handlers.UpdateAccount;
+namespace MoneyControl.Application.Handlers.Account.UpdateAccount;
 
 public class UpdateAccountCommand : IRequest
 {

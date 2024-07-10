@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MoneyControl.Application.Handlers.CreateAccount;
+namespace MoneyControl.Application.Handlers.Account.CreateAccount;
 
 public class CreateAccountCommand : IRequest<int>
 {

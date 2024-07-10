@@ -1,15 +1,15 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
-using MoneyControl.Application.Handlers.DeleteAccount;
-using MoneyControl.Core.Entities;
+using MoneyControl.Application.Handlers.Account.UpdateAccount;
 using MoneyControl.Infrastructure;
+using MoneyControl.Shared;
 using NUnit.Framework;
 using Testcontainers.MsSql;
 
-namespace MoneyControl.Application.UnitTests.Handlers.DeleteAccount;
+namespace MoneyControl.Application.UnitTests.Handlers.Account.UpdateAccount;
 
-public class DeleteAccountHandlerTests
+public class UpdateAccountHandlerTests
 {
     private MsSqlContainer _msSqlContainer;
     
@@ -27,7 +27,7 @@ public class DeleteAccountHandlerTests
     }
 
     [Test]
-    public async Task Handle_WhenSuccess_ShouldRemove()
+    public async Task Handle_WhenSuccess_ShouldUpdate()
     {
         // Arrange
         var applicationOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -42,25 +42,35 @@ public class DeleteAccountHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-        await dbContext.Accounts.AddAsync(new AccountEntity
+        await dbContext.Accounts.AddAsync(new()
         {
-            Name = "Account_test",
             Balance = 0,
-            Currency = "USD"
+            Currency = "USD",
+            Name = "Account_test"
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
-        var request = new DeleteAccountCommand
+        
+        var request = new UpdateAccountCommand
         {
-            Id = 1
+            Id = 1,
+            Name = "Account_test2",
+            Currency = "CAD"
         };
-        var handler = new DeleteAccountHandler(dbContext);
+        var handler = new UpdateAccountHandler(dbContext);
 
         // Act
         await handler.Handle(request, CancellationToken.None);
 
         // Assert
-        var count = await dbContext.Accounts.CountAsync();
-        count.Should().Be(0);
+        var expected = new AccountModel
+        {
+            Id = 1,
+            Name = "Account_test2",
+            Balance = 0,
+            Currency = "CAD"
+        };
+        var account = await dbContext.Accounts.FirstOrDefaultAsync(x => x.Id == 1);
+        account.Should().BeEquivalentTo(expected);
         await dbContext.DisposeAsync();
     }
     
@@ -80,11 +90,13 @@ public class DeleteAccountHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-        var request = new DeleteAccountCommand
+        var request = new UpdateAccountCommand
         {
-            Id = 1
+            Id = 2,
+            Name = "Account_test2",
+            Currency = "CAD"
         };
-        var handler = new DeleteAccountHandler(dbContext);
+        var handler = new UpdateAccountHandler(dbContext);
 
         // Act
         async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);

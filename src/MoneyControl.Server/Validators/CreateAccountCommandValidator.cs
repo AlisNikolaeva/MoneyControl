@@ -1,5 +1,5 @@
 using FluentValidation;
-using MoneyControl.Application.Handlers.CreateAccount;
+using MoneyControl.Application.Handlers.Account.CreateAccount;
 
 namespace MoneyControl.Server.Validators;
 

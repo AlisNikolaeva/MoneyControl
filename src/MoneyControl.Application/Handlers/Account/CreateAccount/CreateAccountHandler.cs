@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MoneyControl.Core.Entities;
 using MoneyControl.Infrastructure;
 
-namespace MoneyControl.Application.Handlers.CreateAccount;
+namespace MoneyControl.Application.Handlers.Account.CreateAccount;
 
 public class CreateAccountHandler : IRequestHandler<CreateAccountCommand, int>
 {

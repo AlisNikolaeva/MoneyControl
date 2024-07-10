@@ -1,8 +1,8 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
-using MoneyControl.Application.Handlers.CreateAccount;
-using MoneyControl.Application.Handlers.UpdateAccount;
+using MoneyControl.Application.Handlers.Account.CreateAccount;
+using MoneyControl.Application.Handlers.Account.UpdateAccount;
 using MoneyControl.Infrastructure;
 using MoneyControl.Server.Validators;
 

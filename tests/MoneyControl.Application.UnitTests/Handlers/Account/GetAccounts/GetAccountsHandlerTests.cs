@@ -1,15 +1,16 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
-using MoneyControl.Application.Handlers.UpdateAccount;
+using MoneyControl.Application.Handlers.Account.GetAccounts;
+using MoneyControl.Core.Entities;
 using MoneyControl.Infrastructure;
 using MoneyControl.Shared;
 using NUnit.Framework;
 using Testcontainers.MsSql;
 
-namespace MoneyControl.Application.UnitTests.Handlers.UpdateAccount;
+namespace MoneyControl.Application.UnitTests.Handlers.Account.GetAccounts;
 
-public class UpdateAccountHandlerTests
+public class GetAccountsHandlerTests
 {
     private MsSqlContainer _msSqlContainer;
     
@@ -27,7 +28,7 @@ public class UpdateAccountHandlerTests
     }
 
     [Test]
-    public async Task Handle_WhenSuccess_ShouldUpdate()
+    public async Task Handle_WhenHasAccounts_ShouldReturnAccounts()
     {
         // Arrange
         var applicationOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -42,40 +43,62 @@ public class UpdateAccountHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-        await dbContext.Accounts.AddAsync(new()
+        await dbContext.Accounts.AddAsync(new AccountEntity
         {
+            Name = "Account_test",
             Balance = 0,
-            Currency = "USD",
-            Name = "Account_test"
+            Currency = "USD"
+        });
+        await dbContext.Accounts.AddAsync(new AccountEntity
+        {
+            Name = "Account_test2",
+            Balance = 0,
+            Currency = "USD"
+        });
+        await dbContext.Accounts.AddAsync(new AccountEntity
+        {
+            Name = "Account_test3",
+            Balance = 0,
+            Currency = "USD"
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
-        
-        var request = new UpdateAccountCommand
-        {
-            Id = 1,
-            Name = "Account_test2",
-            Currency = "CAD"
-        };
-        var handler = new UpdateAccountHandler(dbContext);
+        var request = new GetAccountsCommand();
+        var handler = new GetAccountsHandler(dbContext);
 
         // Act
-        await handler.Handle(request, CancellationToken.None);
+        var result = await handler.Handle(request, CancellationToken.None);
 
         // Assert
-        var expected = new AccountModel
+        var expected = new List<AccountModel>
         {
-            Id = 1,
-            Name = "Account_test2",
-            Balance = 0,
-            Currency = "CAD"
+            new()
+            {
+                Id = 1,
+                Name = "Account_test",
+                Balance = 0,
+                Currency = "USD"
+            },
+            new()
+            {
+                Id = 2,
+                Name = "Account_test2",
+                Balance = 0,
+                Currency = "USD"
+            },
+            new()
+            {
+                Id = 3,
+                Name = "Account_test3",
+                Balance = 0,
+                Currency = "USD"
+            }
         };
-        var account = await dbContext.Accounts.FirstOrDefaultAsync(x => x.Id == 1);
-        account.Should().BeEquivalentTo(expected);
+        result.Should().BeEquivalentTo(expected);
         await dbContext.DisposeAsync();
     }
     
     [Test]
-    public async Task Handle_WhenNotExists_ShouldThrowException()
+    public async Task Handle_WhenNoAccounts_ShouldReturnEmptyCollection()
     {
         // Arrange
         var applicationOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -90,19 +113,14 @@ public class UpdateAccountHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-        var request = new UpdateAccountCommand
-        {
-            Id = 2,
-            Name = "Account_test2",
-            Currency = "CAD"
-        };
-        var handler = new UpdateAccountHandler(dbContext);
+        var request = new GetAccountsCommand();
+        var handler = new GetAccountsHandler(dbContext);
 
         // Act
-        async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);
+        var result = await handler.Handle(request, CancellationToken.None);
 
         // Assert
-        Assert.ThrowsAsync<Exception>(TestDelegate);
+        result.Should().BeEmpty();
         await dbContext.DisposeAsync();
     }
 }
