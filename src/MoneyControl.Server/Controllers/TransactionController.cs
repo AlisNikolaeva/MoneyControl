@@ -5,7 +5,6 @@ using MoneyControl.Application.Handlers.Transaction.DeleteTransaction;
 using MoneyControl.Application.Handlers.Transaction.GetTransactions;
 using MoneyControl.Application.Handlers.Transaction.GetTransactionsByPeriod;
 using MoneyControl.Application.Handlers.Transaction.UpdateTransaction;
-using MoneyControl.Shared;
 using MoneyControl.Shared.Models;
 
 namespace MoneyControl.Server.Controllers;
@@ -22,23 +21,23 @@ public class TransactionController : ControllerBase
     }
     
     [HttpPost("create")]
-    public async Task<int> Create(CreateTransactionCommand command)
+    public async Task<int> Create(CreateTransactionQuery query)
     {
-        var id = await _mediator.Send(command);
+        var id = await _mediator.Send(query);
         return id;
     }
     
     [HttpPost("update")]
-    public async Task<IActionResult> Update(UpdateTransactionCommand command)
+    public async Task<IActionResult> Update(UpdateTransactionQuery query)
     {
-        await _mediator.Send(command);
+        await _mediator.Send(query);
         return Ok();
     }
     
     [HttpDelete]
-    public async Task<IActionResult> Delete(DeleteTransactionCommand command)
+    public async Task<IActionResult> Delete(DeleteTransactionQuery query)
     {
-        await _mediator.Send(command);
+        await _mediator.Send(query);
         return Ok();
     }
     

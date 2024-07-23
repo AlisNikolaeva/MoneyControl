@@ -184,37 +184,4 @@ public class SearchTransactionsHandlerTests
         result.Should().BeEquivalentTo(expected);
         await dbContext.DisposeAsync();
     }
-    
-    [Test]
-    public async Task Handle_WhenNoAccount_ShouldThrowException()
-    {
-        // Arrange
-        var applicationOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlServer(_msSqlContainer.GetConnectionString(),
-                b =>
-                {
-                    b.EnableRetryOnFailure(3);
-                    b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
-                    b.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "dbo");
-                    b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                })
-            .Options;
-        var dbContext = new ApplicationDbContext(applicationOptions);
-        await dbContext.Database.EnsureCreatedAsync();
-
-        var request = new SearchTransactionsQuery
-        {
-            AccountIds = new List<int> {1},
-            StartUtc = new DateTime(2022, 1, 1),
-            EndUtc = new DateTime(2024, 1, 1)
-        };
-        var handler = new SearchTransactionsHandler(dbContext);
-
-        // Act
-        async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);
-
-        // Assert
-        Assert.ThrowsAsync<Exception>(TestDelegate);
-        await dbContext.DisposeAsync();
-    }
 }

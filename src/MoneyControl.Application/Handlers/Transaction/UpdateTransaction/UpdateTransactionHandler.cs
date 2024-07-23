@@ -4,7 +4,7 @@ using MoneyControl.Infrastructure;
 
 namespace MoneyControl.Application.Handlers.Transaction.UpdateTransaction;
 
-public class UpdateTransactionHandler : IRequestHandler<UpdateTransactionCommand>
+public class UpdateTransactionHandler : IRequestHandler<UpdateTransactionQuery>
 {
     private readonly ApplicationDbContext _dbContext;
 
@@ -13,7 +13,7 @@ public class UpdateTransactionHandler : IRequestHandler<UpdateTransactionCommand
         _dbContext = dbContext;
     }
     
-    public async Task Handle(UpdateTransactionCommand request, CancellationToken cancellationToken)
+    public async Task Handle(UpdateTransactionQuery request, CancellationToken cancellationToken)
     {
         var account = await _dbContext.Accounts.FirstOrDefaultAsync(x => x.Id == request.AccountId, cancellationToken);
         if (account == null)

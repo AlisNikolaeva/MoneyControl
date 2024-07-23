@@ -4,7 +4,7 @@ using MoneyControl.Infrastructure;
 
 namespace MoneyControl.Application.Handlers.Transaction.DeleteTransaction;
 
-public class DeleteTransactionHandler : IRequestHandler<DeleteTransactionCommand>
+public class DeleteTransactionHandler : IRequestHandler<DeleteTransactionQuery>
 {
     private readonly ApplicationDbContext _dbContext;
 
@@ -13,7 +13,7 @@ public class DeleteTransactionHandler : IRequestHandler<DeleteTransactionCommand
         _dbContext = dbContext;
     }
     
-    public async Task Handle(DeleteTransactionCommand request, CancellationToken cancellationToken)
+    public async Task Handle(DeleteTransactionQuery request, CancellationToken cancellationToken)
     {
         var transaction = await _dbContext.Transactions.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
         if (transaction == null)

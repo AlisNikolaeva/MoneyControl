@@ -5,7 +5,7 @@ using MoneyControl.Infrastructure;
 
 namespace MoneyControl.Application.Handlers.Transaction.CreateTransaction;
 
-public class CreateTransactionHandler : IRequestHandler<CreateTransactionCommand, int>
+public class CreateTransactionHandler : IRequestHandler<CreateTransactionQuery, int>
 {
     private readonly ApplicationDbContext _dbContext;
 
@@ -14,7 +14,7 @@ public class CreateTransactionHandler : IRequestHandler<CreateTransactionCommand
         _dbContext = dbContext;
     }
     
-    public async Task<int> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
+    public async Task<int> Handle(CreateTransactionQuery request, CancellationToken cancellationToken)
     {
         var account = await _dbContext.Accounts.FirstOrDefaultAsync(x => x.Id == request.AccountId, cancellationToken);
         if (account == null)

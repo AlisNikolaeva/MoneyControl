@@ -68,7 +68,7 @@ public class UpdateTransactionHandlerTests
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
         
-        var request = new UpdateTransactionCommand
+        var request = new UpdateTransactionQuery
         {
             Id = 1,
             AccountId = 2,
@@ -127,7 +127,7 @@ public class UpdateTransactionHandlerTests
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
         
-        var request = new UpdateTransactionCommand
+        var request = new UpdateTransactionQuery
         {
             Id = 1,
             AccountId = 2,
@@ -168,7 +168,7 @@ public class UpdateTransactionHandlerTests
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
         
-        var request = new UpdateTransactionCommand
+        var request = new UpdateTransactionQuery
         {
             Id = 1,
             AccountId = 1,

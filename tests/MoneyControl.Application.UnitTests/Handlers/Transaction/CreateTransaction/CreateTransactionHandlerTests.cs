@@ -50,7 +50,7 @@ public class CreateTransactionHandlerTests
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
         
-        var request = new CreateTransactionCommand
+        var request = new CreateTransactionQuery
         {
             AccountId = 1,
             Sum = 10,
@@ -83,7 +83,7 @@ public class CreateTransactionHandlerTests
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
         
-        var request = new CreateTransactionCommand
+        var request = new CreateTransactionQuery
         {
             AccountId = 1,
             Sum = 10,

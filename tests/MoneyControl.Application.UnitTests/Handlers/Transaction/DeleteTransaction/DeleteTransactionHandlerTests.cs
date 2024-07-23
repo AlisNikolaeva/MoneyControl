@@ -60,7 +60,7 @@ public class DeleteTransactionHandlerTests
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
         
-        var request = new DeleteTransactionCommand
+        var request = new DeleteTransactionQuery
         {
             Id = 1
         };
@@ -91,7 +91,7 @@ public class DeleteTransactionHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-        var request = new DeleteTransactionCommand
+        var request = new DeleteTransactionQuery
         {
             Id = 1
         };

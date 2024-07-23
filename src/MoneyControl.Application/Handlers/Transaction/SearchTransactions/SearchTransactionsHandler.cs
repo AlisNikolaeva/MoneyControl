@@ -16,12 +16,6 @@ public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery
 
     public async Task<IEnumerable<TransactionModel>> Handle(SearchTransactionsQuery request, CancellationToken cancellationToken)
     {
-        var accounts = _dbContext.Accounts.Where(x => request.AccountIds.Contains(x.Id)).ToList();
-        if (accounts == null)
-        {
-            throw new Exception("Accounts aren't found");
-        }
-
         var query = _dbContext.Transactions.Where(x => request.AccountIds.Contains(x.Account.Id));
         if (request.StartUtc.HasValue)
         {
