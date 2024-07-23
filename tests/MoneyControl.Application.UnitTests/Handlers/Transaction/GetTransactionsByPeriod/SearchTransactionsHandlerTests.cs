@@ -6,12 +6,13 @@ using MoneyControl.Application.Handlers.Transaction.GetTransactionsByPeriod;
 using MoneyControl.Core.Entities;
 using MoneyControl.Infrastructure;
 using MoneyControl.Shared;
+using MoneyControl.Shared.Models;
 using NUnit.Framework;
 using Testcontainers.MsSql;
 
 namespace MoneyControl.Application.UnitTests.Handlers.Transaction.GetTransactionsByPeriod;
 
-public class GetTransactionsByPeriodHandlerTests
+public class SearchTransactionsHandlerTests
 {
     private MsSqlContainer _msSqlContainer;
     
@@ -168,13 +169,13 @@ public class GetTransactionsByPeriodHandlerTests
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
-        var request = new GetTransactionsByPeriodCommand
+        var request = new SearchTransactionsQuery
         {
-            AccountId = 1,
+            AccountIds = new List<int> {1},
             StartUtc = start,
             EndUtc = end
         };
-        var handler = new GetTransactionsByPeriodHandler(dbContext);
+        var handler = new SearchTransactionsHandler(dbContext);
 
         // Act
         var result = await handler.Handle(request, CancellationToken.None);
@@ -201,13 +202,13 @@ public class GetTransactionsByPeriodHandlerTests
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
 
-        var request = new GetTransactionsByPeriodCommand
+        var request = new SearchTransactionsQuery
         {
-            AccountId = 1,
+            AccountIds = new List<int> {1},
             StartUtc = new DateTime(2022, 1, 1),
             EndUtc = new DateTime(2024, 1, 1)
         };
-        var handler = new GetTransactionsByPeriodHandler(dbContext);
+        var handler = new SearchTransactionsHandler(dbContext);
 
         // Act
         async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);

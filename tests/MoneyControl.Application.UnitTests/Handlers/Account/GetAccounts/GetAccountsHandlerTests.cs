@@ -5,6 +5,7 @@ using MoneyControl.Application.Handlers.Account.GetAccounts;
 using MoneyControl.Core.Entities;
 using MoneyControl.Infrastructure;
 using MoneyControl.Shared;
+using MoneyControl.Shared.Models;
 using NUnit.Framework;
 using Testcontainers.MsSql;
 

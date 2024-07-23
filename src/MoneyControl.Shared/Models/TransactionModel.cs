@@ -1,4 +1,4 @@
-namespace MoneyControl.Shared;
+namespace MoneyControl.Shared.Models;
 
 public class TransactionModel
 {

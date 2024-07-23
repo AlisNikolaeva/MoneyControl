@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using MoneyControl.Application.Handlers.Account.UpdateAccount;
 using MoneyControl.Infrastructure;
 using MoneyControl.Shared;
+using MoneyControl.Shared.Models;
 using NUnit.Framework;
 using Testcontainers.MsSql;
 

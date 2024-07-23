@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoneyControl.Infrastructure;
-using MoneyControl.Shared;
+using MoneyControl.Shared.Models;
 
 namespace MoneyControl.Application.Handlers.Account.GetAccounts;
 

@@ -25,7 +25,8 @@ public class Program
 
         var connection = builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<ApplicationDbContext>(option => option.UseSqlServer(connection));
-
+        builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateAccountHandler>());
+        
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())

@@ -1,5 +1,5 @@
 using MediatR;
-using MoneyControl.Shared;
+using MoneyControl.Shared.Models;
 
 namespace MoneyControl.Application.Handlers.Account.GetAccounts;
 
