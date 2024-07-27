@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using MoneyControl.Application.Handlers.Account.CreateAccount;
 using MoneyControl.Core.Entities;
 using MoneyControl.Infrastructure;
+using MoneyControl.Shared.Queries.Account.CreateAccount;
 using NUnit.Framework;
 using Testcontainers.MsSql;
 

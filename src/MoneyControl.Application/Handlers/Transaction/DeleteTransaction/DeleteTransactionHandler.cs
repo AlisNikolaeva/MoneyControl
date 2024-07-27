@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoneyControl.Infrastructure;
+using MoneyControl.Shared.Queries.Transaction.DeleteTransaction;
 
 namespace MoneyControl.Application.Handlers.Transaction.DeleteTransaction;
 

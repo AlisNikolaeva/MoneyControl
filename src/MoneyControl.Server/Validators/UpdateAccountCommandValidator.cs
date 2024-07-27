@@ -1,5 +1,6 @@
 using FluentValidation;
 using MoneyControl.Application.Handlers.Account.UpdateAccount;
+using MoneyControl.Shared.Queries.Account.UpdateAccount;
 
 namespace MoneyControl.Server.Validators;
 

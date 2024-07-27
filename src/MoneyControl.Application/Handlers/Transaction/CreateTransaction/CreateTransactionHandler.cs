@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoneyControl.Core.Entities;
 using MoneyControl.Infrastructure;
+using MoneyControl.Shared.Queries.Transaction.CreateTransaction;
 
 namespace MoneyControl.Application.Handlers.Transaction.CreateTransaction;
 

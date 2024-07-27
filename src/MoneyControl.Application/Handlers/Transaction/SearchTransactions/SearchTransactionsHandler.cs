@@ -2,8 +2,9 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoneyControl.Infrastructure;
 using MoneyControl.Shared.Models;
+using MoneyControl.Shared.Queries.Transaction.SearchTransactions;
 
-namespace MoneyControl.Application.Handlers.Transaction.GetTransactionsByPeriod;
+namespace MoneyControl.Application.Handlers.Transaction.SearchTransactions;
 
 public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery, IEnumerable<TransactionModel>>
 {

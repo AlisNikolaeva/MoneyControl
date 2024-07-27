@@ -5,6 +5,10 @@ using MoneyControl.Application.Handlers.Account.DeleteAccount;
 using MoneyControl.Application.Handlers.Account.GetAccounts;
 using MoneyControl.Application.Handlers.Account.UpdateAccount;
 using MoneyControl.Shared.Models;
+using MoneyControl.Shared.Queries.Account.CreateAccount;
+using MoneyControl.Shared.Queries.Account.DeleteAccount;
+using MoneyControl.Shared.Queries.Account.GetAccounts;
+using MoneyControl.Shared.Queries.Account.UpdateAccount;
 
 namespace MoneyControl.Server.Controllers;
 
@@ -44,7 +48,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpDelete]
-    public async Task<IActionResult> Delete(DeleteAccountCommand command)
+    public async Task<IActionResult> Delete([FromQuery]DeleteAccountCommand command)
     {
         await _mediator.Send(command);
         return Ok();

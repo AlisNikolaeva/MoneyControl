@@ -5,6 +5,7 @@ using MoneyControl.Application.Handlers.Account.UpdateAccount;
 using MoneyControl.Infrastructure;
 using MoneyControl.Shared;
 using MoneyControl.Shared.Models;
+using MoneyControl.Shared.Queries.Account.UpdateAccount;
 using NUnit.Framework;
 using Testcontainers.MsSql;
 

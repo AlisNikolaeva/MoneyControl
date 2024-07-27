@@ -3,9 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using MoneyControl.Application.Handlers.Transaction.CreateTransaction;
 using MoneyControl.Application.Handlers.Transaction.DeleteTransaction;
 using MoneyControl.Application.Handlers.Transaction.GetTransactions;
-using MoneyControl.Application.Handlers.Transaction.GetTransactionsByPeriod;
 using MoneyControl.Application.Handlers.Transaction.UpdateTransaction;
 using MoneyControl.Shared.Models;
+using MoneyControl.Shared.Queries.Transaction.CreateTransaction;
+using MoneyControl.Shared.Queries.Transaction.DeleteTransaction;
+using MoneyControl.Shared.Queries.Transaction.GetTransactions;
+using MoneyControl.Shared.Queries.Transaction.SearchTransactions;
+using MoneyControl.Shared.Queries.Transaction.UpdateTransaction;
 
 namespace MoneyControl.Server.Controllers;
 

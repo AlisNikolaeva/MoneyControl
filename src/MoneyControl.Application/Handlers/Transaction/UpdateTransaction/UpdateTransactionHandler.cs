@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoneyControl.Infrastructure;
+using MoneyControl.Shared.Queries.Transaction.UpdateTransaction;
 
 namespace MoneyControl.Application.Handlers.Transaction.UpdateTransaction;
 

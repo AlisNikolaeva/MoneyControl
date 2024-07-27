@@ -5,6 +5,8 @@ using MoneyControl.Application.Handlers.Account.CreateAccount;
 using MoneyControl.Application.Handlers.Account.UpdateAccount;
 using MoneyControl.Infrastructure;
 using MoneyControl.Server.Validators;
+using MoneyControl.Shared.Queries.Account.CreateAccount;
+using MoneyControl.Shared.Queries.Account.UpdateAccount;
 
 namespace MoneyControl.Server;
 

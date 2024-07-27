@@ -2,15 +2,15 @@ using System.Collections;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
-using MoneyControl.Application.Handlers.Transaction.GetTransactionsByPeriod;
+using MoneyControl.Application.Handlers.Transaction.SearchTransactions;
 using MoneyControl.Core.Entities;
 using MoneyControl.Infrastructure;
-using MoneyControl.Shared;
 using MoneyControl.Shared.Models;
+using MoneyControl.Shared.Queries.Transaction.SearchTransactions;
 using NUnit.Framework;
 using Testcontainers.MsSql;
 
-namespace MoneyControl.Application.UnitTests.Handlers.Transaction.GetTransactionsByPeriod;
+namespace MoneyControl.Application.UnitTests.Handlers.Transaction.SearchTransactions;
 
 public class SearchTransactionsHandlerTests
 {

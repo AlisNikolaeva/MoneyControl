@@ -1,5 +1,6 @@
 using MediatR;
 using MoneyControl.Infrastructure;
+using MoneyControl.Shared.Queries.Account.DeleteAccount;
 
 namespace MoneyControl.Application.Handlers.Account.DeleteAccount;
 
@@ -19,8 +20,15 @@ public class DeleteAccountHandler : IRequestHandler<DeleteAccountCommand>
         {
             throw new Exception("Account doesn't exist");
         }
-        
+
         _dbContext.Accounts.Remove(account);
+        
+        var transactions = _dbContext.Transactions.Where(x => x.Account.Id == request.Id);
+        if (transactions.Any())
+        {
+            _dbContext.Transactions.RemoveRange(transactions);
+        }
+        
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

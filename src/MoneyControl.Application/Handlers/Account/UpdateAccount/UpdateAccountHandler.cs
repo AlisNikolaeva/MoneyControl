@@ -1,5 +1,6 @@
 using MediatR;
 using MoneyControl.Infrastructure;
+using MoneyControl.Shared.Queries.Account.UpdateAccount;
 
 namespace MoneyControl.Application.Handlers.Account.UpdateAccount;
 
