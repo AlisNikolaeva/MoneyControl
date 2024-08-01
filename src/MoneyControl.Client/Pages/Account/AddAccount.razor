@@ -3,14 +3,14 @@
 
 <p>Enter the account name: <input name="name" @onchange="@(x => Name = x.Value.ToString())"></p>
 <p>Enter the account currency: <input name="currency" @onchange="@(x => Currency = x.Value.ToString())"></p>
-<p><button class="btn btn-primary" @onclick="@(_ => CreateAsync(Name, Currency))">Add</button></p>
+<p><button class="btn btn-primary" @onclick="@CreateAccountAsync">Add</button></p>
 
 @code {
     public string Name { get; set; }
     public string Currency { get; set; }
     [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
 
-    private async Task CreateAsync(string name, string currency)
+    private async Task CreateAccountAsync()
     {
         await Http.PostAsJsonAsync("account/create", new CreateAccountCommand
         {

@@ -1,0 +1,130 @@
+@page "/Transactions"
+@using MoneyControl.Shared.Models
+@inject HttpClient Http
+
+<h3>Transactions</h3>
+
+<span class="d-flex gap-2 pb-2">
+   @foreach (var item in _accounts)
+    {
+    <label><input type="checkbox" class="form-check-input" checked="@_selectedAccounts.Contains(item.Id)" @onchange="@(_ => ChangeAccountsFilter(item.Id))"> @item.Name</label>
+    } 
+</span>
+
+<span class="d-flex gap-2">
+<p><button @onclick="@GetFilteredTransactionsAsync" type="button" class="btn btn-primary">Apply</button></p>
+<p><button @onclick="@GetAllTransactionsAsync" type="button" class="btn btn-secondary">Reset</button></p>
+</span>
+
+<p><button @onclick="@AddTransactionAsync" type="button" class="btn btn-primary">Add Transaction</button></p>
+
+<table class="table table-striped table-hover table-bordered">
+    <thead>
+    <tr>
+        <th scope="col">Id</th>
+        <th scope="col">AccountId</th>
+        <th scope="col">Sum</th>
+        <th scope="col">DateUtc</th>
+        <th scope="col"></th>
+    </tr>
+    </thead>
+    <tbody class="table-group-divider">
+    @foreach (var item in _transactions)
+    {
+        <tr scope="row">
+            <th>@item.Id</th>
+            <td>@item.AccountId</td>
+            <td>@item.Sum</td>
+            <td>@item.DateUtc.ToLongDateString()</td>
+            <td><button class="border-0 bg-transparent"><i class="fa-solid fa-trash-can text-danger" @onclick="@(() => DeleteTransactionAsync(item.Id))"></i></button></td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private List<AccountModel> _accounts = new();
+    private List<int> _selectedAccounts = new();
+    private List<TransactionModel> _transactions = new();
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account");
+        _accounts.Clear();
+        
+        var selectedAccounts = _accounts.Select(x => x.Id).ToList();
+        _selectedAccounts.Clear();
+        _selectedAccounts.AddRange(selectedAccounts);
+        
+        _accounts.AddRange(accounts);
+        
+        _transactions = await Http.GetFromJsonAsync<List<TransactionModel>>("transaction");
+    }
+
+    private async Task GetFilteredTransactionsAsync()
+    {
+        var result = string.Empty;
+        for (var i = 0; i < _selectedAccounts.Count; i++)
+        {
+            result += $"&accountids[{i}]={_selectedAccounts[i]}";
+        }
+        
+        var transactions = await Http.GetFromJsonAsync<List<TransactionModel>>($"transaction/search?{result}");
+        _transactions.Clear();
+        _transactions.AddRange(transactions);
+    }
+
+    private async Task GetAllTransactionsAsync()
+    {
+        await ReloadTransactionsAsync();
+        
+        _selectedAccounts.Clear();
+    }
+
+    private void ChangeAccountsFilter(int accountId)
+    {
+        if (_selectedAccounts.Contains(accountId))
+        {
+            _selectedAccounts.Remove(accountId);
+        }
+        else
+        {
+            _selectedAccounts.Add(accountId);
+        }
+    }
+
+    private async Task AddTransactionAsync()
+    {
+        var addTransactionModel = Modal.Show<AddTransaction>("Add Transaction");
+        var result = await addTransactionModel.Result;
+
+        if (result.Cancelled)
+        {
+            return;
+        }
+        
+        await ReloadTransactionsAsync();
+    }
+    
+    private async Task DeleteTransactionAsync(int id)
+    {
+        var parameters = new ModalParameters().Add("id", id);
+        var deleteTransactionModel = Modal.Show<DeleteTransaction>("Delete Transaction", parameters);
+        var result = await deleteTransactionModel.Result;
+
+        if (result.Cancelled)
+        {
+            return;
+        }
+
+        await ReloadTransactionsAsync();
+    }
+    
+    private async Task ReloadTransactionsAsync()
+    {
+        _transactions.Clear();
+        var transactions = await Http.GetFromJsonAsync<List<TransactionModel>>("transaction");
+        _transactions.AddRange(transactions);
+    }
+}

@@ -1,9 +1,5 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using MoneyControl.Application.Handlers.Account.CreateAccount;
-using MoneyControl.Application.Handlers.Account.DeleteAccount;
-using MoneyControl.Application.Handlers.Account.GetAccounts;
-using MoneyControl.Application.Handlers.Account.UpdateAccount;
 using MoneyControl.Shared.Models;
 using MoneyControl.Shared.Queries.Account.CreateAccount;
 using MoneyControl.Shared.Queries.Account.DeleteAccount;

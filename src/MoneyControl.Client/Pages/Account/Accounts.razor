@@ -4,7 +4,7 @@
 <h3>Accounts</h3>
 
 <p>
-    <button @onclick="@(AddAsync)" class="btn btn-primary">Add Account</button>
+    <button @onclick="@AddAccountAsync" class="btn btn-primary">Add Account</button>
 </p>
 
 <table class="table table-striped table-hover table-bordered">
@@ -25,22 +25,22 @@
             <td>@item.Name</td>
             <td>@item.Balance</td>
             <td>@item.Currency</td>
-            <td><button class="border-0 bg-transparent"><i class="fa-solid fa-trash-can text-danger" @onclick="@(() => DeleteAsync(item.Id))"></i></button></td>
+            <td><button class="border-0 bg-transparent"><i class="fa-solid fa-trash-can text-danger" @onclick="@(() => DeleteAccountAsync(item.Id))"></i></button></td>
         </tr>
     }
     </tbody>
 </table>
 
 @code {
-    private List<AccountModel>? _accounts = new();
+    private List<AccountModel> _accounts = new();
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        _accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account");
+        await ReloadAccountsAsync();
     }
 
-    private async Task AddAsync()
+    private async Task AddAccountAsync()
     {
         var addAccountModal = Modal.Show<AddAccount>("Add Account");
         var result = await addAccountModal.Result;
@@ -50,12 +50,10 @@
             return;
         }
         
-        _accounts.Clear();
-        var accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account");
-        _accounts.AddRange(accounts);
+        await ReloadAccountsAsync();
     }
     
-    private async Task DeleteAsync(int id)
+    private async Task DeleteAccountAsync(int id)
     {
         var parameters = new ModalParameters().Add("id", id);
         var deleteAccountModel = Modal.Show<DeleteAccount>("Delete Account", parameters);
@@ -65,7 +63,12 @@
         {
             return;
         }
-        
+
+        await ReloadAccountsAsync();
+    }
+
+    private async Task ReloadAccountsAsync()
+    {
         _accounts.Clear();
         var accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account");
         _accounts.AddRange(accounts);

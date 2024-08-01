@@ -1,9 +1,5 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using MoneyControl.Application.Handlers.Transaction.CreateTransaction;
-using MoneyControl.Application.Handlers.Transaction.DeleteTransaction;
-using MoneyControl.Application.Handlers.Transaction.GetTransactions;
-using MoneyControl.Application.Handlers.Transaction.UpdateTransaction;
 using MoneyControl.Shared.Models;
 using MoneyControl.Shared.Queries.Transaction.CreateTransaction;
 using MoneyControl.Shared.Queries.Transaction.DeleteTransaction;
@@ -39,7 +35,7 @@ public class TransactionController : ControllerBase
     }
     
     [HttpDelete]
-    public async Task<IActionResult> Delete(DeleteTransactionQuery query)
+    public async Task<IActionResult> Delete([FromQuery]DeleteTransactionQuery query)
     {
         await _mediator.Send(query);
         return Ok();
