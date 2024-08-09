@@ -53,7 +53,7 @@ public class CreateTransactionHandlerTests
         
         var request = new CreateTransactionQuery
         {
-            AccountId = 1,
+            AccountName = "Account_test",
             Sum = 10,
             DateUtc = DateTime.Now
         };
@@ -86,7 +86,7 @@ public class CreateTransactionHandlerTests
         
         var request = new CreateTransactionQuery
         {
-            AccountId = 1,
+            AccountName = "1",
             Sum = 10,
             DateUtc = DateTime.Now
         };

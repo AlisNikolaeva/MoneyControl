@@ -1,0 +1,60 @@
+@using MoneyControl.Shared.Models
+@using MoneyControl.Shared.Queries.Transaction.UpdateTransaction
+@inject HttpClient Http
+
+<div class="mb-3">
+    <label for="chooseAccount">Choose Account:</label>
+    <select id="chooseAccount"
+        @bind="@Transaction.AccountId"
+        class="form-select">
+        @foreach (var item in _accounts)
+        {
+            <option value="@item.Id">@item.Name</option>
+        }
+    </select>
+</div>
+
+<div class="mb-3">
+    <label for="sum">Enter the sum:</label>
+    <input id="sum"
+           class="form-control" 
+           placeholder="Sum" 
+           @bind="@Transaction.Sum">
+</div>
+
+<div class="mb-3">
+    <label for="date">Enter the date:</label>
+    <input id="date"
+           class="form-control" 
+           placeholder="Date" 
+           type="date"
+           @bind="@Transaction.DateUtc">
+</div>
+
+<div>
+    <button class="btn btn-primary" @onclick="@UpdateTransactionAsync">Update</button>
+</div>
+
+@code {
+    private List<AccountModel>? _accounts = new();
+    [Parameter] public TransactionModel Transaction { get; set; }
+    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account");
+    }
+
+    private async Task UpdateTransactionAsync()
+    {
+        await Http.PostAsJsonAsync("transaction/update", new UpdateTransactionQuery
+        {
+            Id = Transaction.Id,
+            AccountId = Transaction.AccountId,
+            Sum = Transaction.Sum,
+            DateUtc = Transaction.DateUtc
+        });
+
+        await BlazoredModal.CloseAsync();
+    }
+}

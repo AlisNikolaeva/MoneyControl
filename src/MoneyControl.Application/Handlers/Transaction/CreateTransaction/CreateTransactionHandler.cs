@@ -17,7 +17,7 @@ public class CreateTransactionHandler : IRequestHandler<CreateTransactionQuery, 
     
     public async Task<int> Handle(CreateTransactionQuery request, CancellationToken cancellationToken)
     {
-        var account = await _dbContext.Accounts.FirstOrDefaultAsync(x => x.Id == request.AccountId, cancellationToken);
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(x => x.Name.Equals(request.AccountName), cancellationToken);
         if (account == null)
         {
             throw new Exception("Account doesn't exist");
@@ -29,9 +29,12 @@ public class CreateTransactionHandler : IRequestHandler<CreateTransactionQuery, 
             Sum = request.Sum,
             DateUtc = request.DateUtc
         };
-
+        
         await _dbContext.Transactions.AddAsync(transaction, cancellationToken);
+
+        account.Balance += transaction.Sum;
         await _dbContext.SaveChangesAsync(cancellationToken);
+        
         return transaction.Id;
     }
 }

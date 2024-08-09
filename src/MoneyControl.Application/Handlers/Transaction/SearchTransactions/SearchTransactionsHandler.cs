@@ -31,6 +31,7 @@ public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery
         var filteredTransactions = await query.Select(x => new TransactionModel
         {
             AccountId = x.Account.Id,
+            AccountName = x.Account.Name,
             DateUtc = x.DateUtc,
             Id = x.Id,
             Sum = x.Sum

@@ -2,35 +2,45 @@
 @using MoneyControl.Shared.Queries.Transaction.CreateTransaction
 @inject HttpClient Http
 
-<p>Choose account ID: 
-    <select @bind="@AccountId">
-    @foreach (var item in _accounts)
-    {
-        <option value="@item.Id">@item.Name</option>
-    }
-</select></p>
-<p>Enter sum: <input name="sum" @onchange="@(x => Sum = Convert.ToDouble(x.Value))"></p>
-<p><button class="btn btn-primary" @onclick="@CreateTransactionAsync">Add</button></p>
+<div class="mb-3">
+    <label for="chooseAccount">Choose Account name:</label>
+    <select id="chooseAccount" @bind="@AccountName" class="form-select">
+        @foreach (var item in _accounts)
+        {
+            <option value="@item.Name">@item.Name</option>
+        }
+    </select>
+</div>
+
+<div class="mb-3">
+    <label for="sum">Enter the sum:</label>
+    <input id="sum" class="form-control" placeholder="Sum" @onchange="@(x => Sum = Convert.ToDouble(x.Value))">
+</div>
+
+<div>
+    <button class="btn btn-primary" @onclick="@CreateTransactionAsync">Add</button>
+</div>
 
 @code {
     private List<AccountModel>? _accounts = new();
-    public int AccountId { get; set; }
+    public string AccountName { get; set; }
     public double Sum { get; set; }
     [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
-    
+
     protected override async Task OnInitializedAsync()
     {
         _accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account");
     }
-    
+
     private async Task CreateTransactionAsync()
     {
         await Http.PostAsJsonAsync("transaction/create", new CreateTransactionQuery
         {
-            AccountId = AccountId,
+            AccountName = AccountName,
             Sum = Sum
         });
-        
+
         await BlazoredModal.CloseAsync();
     }
+
 }

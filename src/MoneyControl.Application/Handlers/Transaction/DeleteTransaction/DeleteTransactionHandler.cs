@@ -16,12 +16,14 @@ public class DeleteTransactionHandler : IRequestHandler<DeleteTransactionQuery>
     
     public async Task Handle(DeleteTransactionQuery request, CancellationToken cancellationToken)
     {
-        var transaction = await _dbContext.Transactions.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+        var transaction = await _dbContext.Transactions.Include(transactionEntity => transactionEntity.Account)
+            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
         if (transaction == null)
         {
             throw new Exception("Transaction doesn't exist");
         }
-        
+
+        transaction.Account.Balance -= transaction.Sum;
         _dbContext.Transactions.Remove(transaction);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }

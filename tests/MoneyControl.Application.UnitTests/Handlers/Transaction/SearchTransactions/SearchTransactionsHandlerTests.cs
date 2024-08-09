@@ -43,6 +43,7 @@ public class SearchTransactionsHandlerTests
                     {
                         Id = 1,
                         AccountId = 1,
+                        AccountName = "Account_test",
                         Sum = 10,
                         DateUtc = new DateTime(2024, 1, 1)
                     },
@@ -50,6 +51,7 @@ public class SearchTransactionsHandlerTests
                     {
                         Id = 2,
                         AccountId = 1,
+                        AccountName = "Account_test",
                         Sum = 20,
                         DateUtc = new DateTime(2023, 1, 1)
                     },
@@ -57,6 +59,7 @@ public class SearchTransactionsHandlerTests
                     {
                         Id = 3,
                         AccountId = 1,
+                        AccountName = "Account_test",
                         Sum = 30,
                         DateUtc = new DateTime(2022, 1, 1)
                     }
@@ -72,6 +75,7 @@ public class SearchTransactionsHandlerTests
                     {
                         Id = 1,
                         AccountId = 1,
+                        AccountName = "Account_test",
                         Sum = 10,
                         DateUtc = new DateTime(2024, 1, 1)
                     },
@@ -79,6 +83,7 @@ public class SearchTransactionsHandlerTests
                     {
                         Id = 2,
                         AccountId = 1,
+                        AccountName = "Account_test",
                         Sum = 20,
                         DateUtc = new DateTime(2023, 1, 1)
                     }
@@ -94,6 +99,7 @@ public class SearchTransactionsHandlerTests
                     {
                         Id = 2,
                         AccountId = 1,
+                        AccountName = "Account_test",
                         Sum = 20,
                         DateUtc = new DateTime(2023, 1, 1)
                     },
@@ -101,6 +107,7 @@ public class SearchTransactionsHandlerTests
                     {
                         Id = 3,
                         AccountId = 1,
+                        AccountName = "Account_test",
                         Sum = 30,
                         DateUtc = new DateTime(2022, 1, 1)
                     }
@@ -116,6 +123,7 @@ public class SearchTransactionsHandlerTests
                     {
                         Id = 2,
                         AccountId = 1,
+                        AccountName = "Account_test",
                         Sum = 20,
                         DateUtc = new DateTime(2023, 1, 1)
                     }
@@ -139,7 +147,7 @@ public class SearchTransactionsHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-
+    
         var account = new AccountEntity
         {
             Name = "Account_test",
@@ -168,7 +176,7 @@ public class SearchTransactionsHandlerTests
             DateUtc = new DateTime(2022,1,1)
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
-
+    
         var request = new SearchTransactionsQuery
         {
             AccountIds = new List<int> {1},
@@ -176,10 +184,10 @@ public class SearchTransactionsHandlerTests
             EndUtc = end
         };
         var handler = new SearchTransactionsHandler(dbContext);
-
+    
         // Act
         var result = await handler.Handle(request, CancellationToken.None);
-
+    
         // Assert
         result.Should().BeEquivalentTo(expected);
         await dbContext.DisposeAsync();

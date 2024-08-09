@@ -13,6 +13,7 @@ public class AccountConfiguration : IEntityTypeConfiguration<AccountEntity>
         builder.Property(x => x.Name)
             .HasMaxLength(512)
             .IsRequired();
+        builder.HasIndex(x => x.Name).IsUnique();
         builder.Property(x => x.Currency)
             .HasMaxLength(10)
             .IsRequired();

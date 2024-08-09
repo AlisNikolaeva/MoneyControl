@@ -43,7 +43,7 @@ public class UpdateTransactionHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-
+    
         var account1 = new AccountEntity
         {
             Name = "Account_test1",
@@ -77,10 +77,10 @@ public class UpdateTransactionHandlerTests
             DateUtc = new DateTime(2023,1,1)
         };
         var handler = new UpdateTransactionHandler(dbContext);
-
+    
         // Act
         await handler.Handle(request, CancellationToken.None);
-
+    
         // Assert
         var expected = new TransactionEntity
         {
@@ -110,7 +110,7 @@ public class UpdateTransactionHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-
+    
         var account = new AccountEntity
         {
             Name = "Account_test",
@@ -136,10 +136,10 @@ public class UpdateTransactionHandlerTests
             DateUtc = new DateTime(2023,1,1)
         };
         var handler = new UpdateTransactionHandler(dbContext);
-
+    
         // Act
         async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);
-
+    
         // Assert
         Assert.ThrowsAsync<Exception>(TestDelegate);
         await dbContext.DisposeAsync();
@@ -177,10 +177,10 @@ public class UpdateTransactionHandlerTests
             DateUtc = new DateTime(2023,1,1)
         };
         var handler = new UpdateTransactionHandler(dbContext);
-
+    
         // Act
         async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);
-
+    
         // Assert
         Assert.ThrowsAsync<Exception>(TestDelegate);
         await dbContext.DisposeAsync();

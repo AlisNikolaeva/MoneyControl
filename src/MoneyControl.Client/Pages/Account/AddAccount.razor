@@ -1,15 +1,40 @@
+@using System.Text.Json
 @using MoneyControl.Shared.Queries.Account.CreateAccount
 @inject HttpClient Http
 
-<p>Enter the account name: <input name="name" @onchange="@(x => Name = x.Value.ToString())"></p>
-<p>Enter the account currency: <input name="currency" @onchange="@(x => Currency = x.Value.ToString())"></p>
-<p><button class="btn btn-primary" @onclick="@CreateAccountAsync">Add</button></p>
+<div class="mb-3">
+    <label for="name">Enter the account name:</label>
+    <input id="name" class="form-control" placeholder="Account Name" @onchange="@(x => Name = x.Value.ToString())">
+</div>
+
+<div class="mb-3">
+    <label for="currency">Enter the account currency:</label>
+    <select id="currency" 
+            class="form-select" 
+            placeholder="Account Currency" 
+            @onchange="@(x => Currency = x.Value.ToString())">
+        @foreach (var item in Currencies)
+        {
+            <option value="@item.Key">@item.Key</option>
+        }
+    </select>
+</div>
+
+<div>
+    <button class="btn btn-primary" @onclick="@CreateAccountAsync">Add</button>
+</div>
 
 @code {
     public string Name { get; set; }
-    public string Currency { get; set; }
+    public string Currency { get; set; } = "USD";
+    public Dictionary<string, string> Currencies { get; set; } = new();
     [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
-
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        Currencies = await Http.GetFromJsonAsync<Dictionary<string, string>>("https://openexchangerates.org/api/currencies.json");
+    }
+    
     private async Task CreateAccountAsync()
     {
         await Http.PostAsJsonAsync("account/create", new CreateAccountCommand

@@ -29,6 +29,7 @@ public class GetAccountsHandler : IRequestHandler<GetAccountsCommand, IEnumerabl
                 Name = item.Name
             });
         }
+        
         return accounts;
     }
 }

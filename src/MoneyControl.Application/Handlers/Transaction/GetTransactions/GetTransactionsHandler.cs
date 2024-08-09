@@ -22,12 +22,14 @@ public class GetTransactionsHandler : IRequestHandler<GetTransactionsCommand, IE
             .ToListAsync(cancellationToken);
         var transactions = new List<TransactionModel>();
         
+        
         foreach (var item in entities)
         {
             transactions.Add(new TransactionModel
             {
                 Id = item.Id,
                 AccountId = item.Account.Id,
+                AccountName = item.Account.Name,
                 Sum = item.Sum,
                 DateUtc = item.DateUtc
             });
