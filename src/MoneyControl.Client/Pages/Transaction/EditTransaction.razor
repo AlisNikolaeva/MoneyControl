@@ -47,7 +47,7 @@
 
     private async Task UpdateTransactionAsync()
     {
-        await Http.PostAsJsonAsync("transaction/update", new UpdateTransactionQuery
+        await Http.PostAsJsonAsync("transaction/update", new UpdateTransactionCommand
         {
             Id = Transaction.Id,
             AccountId = Transaction.AccountId,

@@ -2,7 +2,7 @@ using MediatR;
 
 namespace MoneyControl.Shared.Queries.Transaction.UpdateTransaction;
 
-public class UpdateTransactionQuery : IRequest
+public class UpdateTransactionCommand : IRequest
 {
     public int Id { get; set; }
     public int AccountId { get; set; }

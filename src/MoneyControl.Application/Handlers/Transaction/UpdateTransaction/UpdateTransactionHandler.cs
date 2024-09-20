@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoneyControl.Infrastructure;
@@ -5,7 +7,7 @@ using MoneyControl.Shared.Queries.Transaction.UpdateTransaction;
 
 namespace MoneyControl.Application.Handlers.Transaction.UpdateTransaction;
 
-public class UpdateTransactionHandler : IRequestHandler<UpdateTransactionQuery>
+public class UpdateTransactionHandler : IRequestHandler<UpdateTransactionCommand>
 {
     private readonly ApplicationDbContext _dbContext;
 
@@ -14,19 +16,21 @@ public class UpdateTransactionHandler : IRequestHandler<UpdateTransactionQuery>
         _dbContext = dbContext;
     }
     
-    public async Task Handle(UpdateTransactionQuery request, CancellationToken cancellationToken)
+    public async Task Handle(UpdateTransactionCommand request, CancellationToken cancellationToken)
     {
         var transaction = _dbContext.Transactions.Include(transactionEntity => transactionEntity.Account)
             .FirstOrDefault(x => x.Id == request.Id);
         if (transaction == null)
         {
-            throw new Exception("Transaction doesn't exist");
+            throw new ValidationException("Transaction doesn't exist", 
+                [new ValidationFailure("Id", "Transaction doesn't exist")]);
         }
         
         var newAccount = await _dbContext.Accounts.FirstOrDefaultAsync(x => x.Id == request.AccountId, cancellationToken);
         if (newAccount == null)
         {
-            throw new Exception("Account doesn't exist");
+            throw new ValidationException("Account doesn't exist", 
+                [new ValidationFailure("AccountId", "Account doesn't exist")]);
         }
 
         if (transaction.Account.Id != newAccount.Id)

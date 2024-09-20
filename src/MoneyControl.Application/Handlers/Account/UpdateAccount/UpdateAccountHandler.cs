@@ -1,4 +1,7 @@
+using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using MoneyControl.Infrastructure;
 using MoneyControl.Shared.Queries.Account.UpdateAccount;
 
@@ -18,7 +21,14 @@ public class UpdateAccountHandler : IRequestHandler<UpdateAccountCommand>
         var account = _dbContext.Accounts.FirstOrDefault(x => x.Id == request.Id);
         if (account == null)
         {
-            throw new Exception("Account doesn't exist");
+            throw new ValidationException("Account doesn't exist", [new ValidationFailure("Name", "Account doesn't exist")]);
+        }
+        
+        var exist = await _dbContext.Accounts.AnyAsync(x => x.Name == request.Name, cancellationToken);
+        if (exist)
+        {
+            throw new ValidationException("This account name already exists.", 
+                [new ValidationFailure("Name", "This account name already exists.")]);
         }
         
         account.Name = request.Name;

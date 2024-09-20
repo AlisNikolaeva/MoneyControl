@@ -22,11 +22,6 @@ public class AccountController : ControllerBase
     [HttpPost("create")]
     public async Task<object> Create(CreateAccountCommand command)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
         var id = await _mediator.Send(command);
         return id;
     }
@@ -34,11 +29,6 @@ public class AccountController : ControllerBase
     [HttpPost("update")]
     public async Task<IActionResult> Update(UpdateAccountCommand command)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
         await _mediator.Send(command);
         return Ok();
     }

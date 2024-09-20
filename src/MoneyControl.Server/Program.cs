@@ -1,12 +1,14 @@
 using FluentValidation;
-using FluentValidation.AspNetCore;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoneyControl.Application.Handlers.Account.CreateAccount;
-using MoneyControl.Application.Handlers.Account.UpdateAccount;
 using MoneyControl.Infrastructure;
-using MoneyControl.Server.Validators;
+using MoneyControl.Server.Validators.Account;
+using MoneyControl.Server.Validators.Transaction;
 using MoneyControl.Shared.Queries.Account.CreateAccount;
 using MoneyControl.Shared.Queries.Account.UpdateAccount;
+using MoneyControl.Shared.Queries.Transaction.CreateTransaction;
+using MoneyControl.Shared.Queries.Transaction.UpdateTransaction;
 
 namespace MoneyControl.Server;
 
@@ -23,11 +25,14 @@ public class Program
 
         builder.Services.AddScoped<IValidator<CreateAccountCommand>, CreateAccountCommandValidator>();
         builder.Services.AddScoped<IValidator<UpdateAccountCommand>, UpdateAccountCommandValidator>();
-        builder.Services.AddFluentValidationAutoValidation();
+        builder.Services.AddScoped<IValidator<CreateTransactionCommand>, CreateTransactionCommandValidator>();
+        builder.Services.AddScoped<IValidator<UpdateTransactionCommand>, UpdateTransactionCommandValidator>();
 
         var connection = builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<ApplicationDbContext>(option => option.UseSqlServer(connection));
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateAccountHandler>());
+        
+        builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         
         var app = builder.Build();
 
@@ -46,6 +51,7 @@ public class Program
         app.UseBlazorFrameworkFiles();
         app.UseStaticFiles();
 
+        app.UseMiddleware<ValidationExceptionMiddleware>();
         app.UseRouting();
         app.UseCors("AllowAll");
 

@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using MoneyControl.Application.Handlers.Transaction.CreateTransaction;
@@ -51,9 +52,9 @@ public class CreateTransactionHandlerTests
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
         
-        var request = new CreateTransactionQuery
+        var request = new CreateTransactionCommand
         {
-            AccountName = "Account_test",
+            AccountId = 1,
             Sum = 10,
             DateUtc = DateTime.Now
         };
@@ -84,9 +85,9 @@ public class CreateTransactionHandlerTests
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
         
-        var request = new CreateTransactionQuery
+        var request = new CreateTransactionCommand
         {
-            AccountName = "1",
+            AccountId = 1,
             Sum = 10,
             DateUtc = DateTime.Now
         };
@@ -96,7 +97,7 @@ public class CreateTransactionHandlerTests
         async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);
     
         // Assert
-        Assert.ThrowsAsync<Exception>(TestDelegate);
+        Assert.ThrowsAsync<ValidationException>(TestDelegate);
         await dbContext.DisposeAsync();
     }
 }

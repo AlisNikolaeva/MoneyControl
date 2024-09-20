@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using MoneyControl.Application.Handlers.Transaction.UpdateTransaction;
@@ -69,7 +70,7 @@ public class UpdateTransactionHandlerTests
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
         
-        var request = new UpdateTransactionQuery
+        var request = new UpdateTransactionCommand
         {
             Id = 1,
             AccountId = 2,
@@ -128,7 +129,7 @@ public class UpdateTransactionHandlerTests
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
         
-        var request = new UpdateTransactionQuery
+        var request = new UpdateTransactionCommand
         {
             Id = 1,
             AccountId = 2,
@@ -141,7 +142,7 @@ public class UpdateTransactionHandlerTests
         async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);
     
         // Assert
-        Assert.ThrowsAsync<Exception>(TestDelegate);
+        Assert.ThrowsAsync<ValidationException>(TestDelegate);
         await dbContext.DisposeAsync();
     }
     
@@ -169,7 +170,7 @@ public class UpdateTransactionHandlerTests
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
         
-        var request = new UpdateTransactionQuery
+        var request = new UpdateTransactionCommand
         {
             Id = 1,
             AccountId = 1,
@@ -182,7 +183,7 @@ public class UpdateTransactionHandlerTests
         async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);
     
         // Assert
-        Assert.ThrowsAsync<Exception>(TestDelegate);
+        Assert.ThrowsAsync<ValidationException>(TestDelegate);
         await dbContext.DisposeAsync();
     }
 }

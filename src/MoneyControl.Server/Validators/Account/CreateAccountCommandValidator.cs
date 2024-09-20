@@ -1,18 +1,17 @@
 using FluentValidation;
-using MoneyControl.Application.Handlers.Account.CreateAccount;
 using MoneyControl.Shared.Queries.Account.CreateAccount;
 
-namespace MoneyControl.Server.Validators;
+namespace MoneyControl.Server.Validators.Account;
 
 public class CreateAccountCommandValidator : AbstractValidator<CreateAccountCommand>
 {
     public CreateAccountCommandValidator()
     {
         RuleFor(x => x.Name)
-            .NotNull()
+            .NotEmpty().WithMessage("Name must not be empty")
             .MaximumLength(512);
         RuleFor(x => x.Currency)
-            .NotNull()
+            .NotEmpty().WithMessage("Currency must not be empty")
             .MaximumLength(10);
     }
 }

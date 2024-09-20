@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoneyControl.Infrastructure;
@@ -20,7 +22,8 @@ public class DeleteTransactionHandler : IRequestHandler<DeleteTransactionQuery>
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
         if (transaction == null)
         {
-            throw new Exception("Transaction doesn't exist");
+            throw new ValidationException("Transaction doesn't exist", 
+                [new ValidationFailure("Id", "Transaction doesn't exist")]);
         }
 
         transaction.Account.Balance -= transaction.Sum;

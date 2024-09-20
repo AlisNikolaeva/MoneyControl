@@ -4,10 +4,10 @@
 
 <div class="mb-3">
     <label for="chooseAccount">Choose Account name:</label>
-    <select id="chooseAccount" @bind="@AccountName" class="form-select">
+    <select id="chooseAccount" @bind="@AccountId" class="form-select">
         @foreach (var item in _accounts)
         {
-            <option value="@item.Name">@item.Name</option>
+            <option value="@item.Id">@item.Name</option>
         }
     </select>
 </div>
@@ -23,7 +23,7 @@
 
 @code {
     private List<AccountModel>? _accounts = new();
-    public string AccountName { get; set; }
+    public int AccountId { get; set; }
     public double Sum { get; set; }
     [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
 
@@ -34,9 +34,9 @@
 
     private async Task CreateTransactionAsync()
     {
-        await Http.PostAsJsonAsync("transaction/create", new CreateTransactionQuery
+        await Http.PostAsJsonAsync("transaction/create", new CreateTransactionCommand
         {
-            AccountName = AccountName,
+            AccountId = AccountId,
             Sum = Sum
         });
 

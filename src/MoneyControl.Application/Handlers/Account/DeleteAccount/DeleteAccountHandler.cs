@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 using MoneyControl.Infrastructure;
 using MoneyControl.Shared.Queries.Account.DeleteAccount;
@@ -18,7 +20,7 @@ public class DeleteAccountHandler : IRequestHandler<DeleteAccountCommand>
         var account = _dbContext.Accounts.FirstOrDefault(x => x.Id == request.Id);
         if (account == null)
         {
-            throw new Exception("Account doesn't exist");
+            throw new ValidationException("Account doesn't exist", [new ValidationFailure("Name", "Account doesn't exist")]);
         }
 
         _dbContext.Accounts.Remove(account);

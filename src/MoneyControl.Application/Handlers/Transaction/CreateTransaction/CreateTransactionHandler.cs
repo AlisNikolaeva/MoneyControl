@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoneyControl.Core.Entities;
@@ -6,7 +8,7 @@ using MoneyControl.Shared.Queries.Transaction.CreateTransaction;
 
 namespace MoneyControl.Application.Handlers.Transaction.CreateTransaction;
 
-public class CreateTransactionHandler : IRequestHandler<CreateTransactionQuery, int>
+public class CreateTransactionHandler : IRequestHandler<CreateTransactionCommand, int>
 {
     private readonly ApplicationDbContext _dbContext;
 
@@ -15,12 +17,13 @@ public class CreateTransactionHandler : IRequestHandler<CreateTransactionQuery, 
         _dbContext = dbContext;
     }
     
-    public async Task<int> Handle(CreateTransactionQuery request, CancellationToken cancellationToken)
+    public async Task<int> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
     {
-        var account = await _dbContext.Accounts.FirstOrDefaultAsync(x => x.Name.Equals(request.AccountName), cancellationToken);
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(x => x.Id == request.AccountId, cancellationToken);
         if (account == null)
         {
-            throw new Exception("Account doesn't exist");
+            throw new ValidationException("Account does not exist.", 
+                [new ValidationFailure("AccountId", "Account does not exist.")]);
         }
 
         var transaction = new TransactionEntity

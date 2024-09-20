@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using MoneyControl.Application.Handlers.Account.DeleteAccount;
@@ -91,7 +92,7 @@ public class DeleteAccountHandlerTests
         async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);
 
         // Assert
-        Assert.ThrowsAsync<Exception>(TestDelegate);
+        Assert.ThrowsAsync<ValidationException>(TestDelegate);
         await dbContext.DisposeAsync();
     }
 }

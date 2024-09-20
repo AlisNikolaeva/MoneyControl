@@ -21,16 +21,16 @@ public class TransactionController : ControllerBase
     }
     
     [HttpPost("create")]
-    public async Task<int> Create(CreateTransactionQuery query)
+    public async Task<int> Create(CreateTransactionCommand command)
     {
-        var id = await _mediator.Send(query);
+        var id = await _mediator.Send(command);
         return id;
     }
     
     [HttpPost("update")]
-    public async Task<IActionResult> Update(UpdateTransactionQuery query)
+    public async Task<IActionResult> Update(UpdateTransactionCommand command)
     {
-        await _mediator.Send(query);
+        await _mediator.Send(command);
         return Ok();
     }
     
@@ -49,9 +49,9 @@ public class TransactionController : ControllerBase
     }
     
     [HttpGet("search")]
-    public async Task<IEnumerable<TransactionModel>> Search([FromQuery]SearchTransactionsQuery command)
+    public async Task<IEnumerable<TransactionModel>> Search([FromQuery]SearchTransactionsQuery query)
     {
-        var transactions = await _mediator.Send(command);
+        var transactions = await _mediator.Send(query);
         return transactions;
     }
 }

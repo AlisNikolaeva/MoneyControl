@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoneyControl.Core.Entities;
@@ -20,7 +22,8 @@ public class CreateAccountHandler : IRequestHandler<CreateAccountCommand, int>
         var exist = await _dbContext.Accounts.AnyAsync(x => x.Name == request.Name, cancellationToken);
         if (exist)
         {
-            throw new Exception("Already exists");
+            throw new ValidationException("This account name already exists.", 
+                [new ValidationFailure("Name", "This account name already exists.")]);
         }
         
         var account = new AccountEntity
