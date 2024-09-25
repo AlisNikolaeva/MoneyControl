@@ -1,46 +1,92 @@
+@using MoneyControl.Client.Pages.Transaction.Models
+@using MoneyControl.Client.Validation
 @using MoneyControl.Shared.Models
 @using MoneyControl.Shared.Queries.Transaction.CreateTransaction
 @inject HttpClient Http
 
-<div class="mb-3">
-    <label for="chooseAccount">Choose Account name:</label>
-    <select id="chooseAccount" @bind="@AccountId" class="form-select">
-        @foreach (var item in _accounts)
-        {
-            <option value="@item.Id">@item.Name</option>
-        }
-    </select>
-</div>
+<EditForm EditContext="@EditContext">
+    <div class="mb-3">
+        <label for="chooseAccount">Choose Account name:</label>
+        <select id="chooseAccount" @bind="@Model.AccountId" class="form-select">
+            <option value="0">Please select</option>
+            @foreach (var item in _accounts)
+            {
+                <option value="@item.Id">@item.Name</option>
+            }
+        </select>
+        <ValidationMessage For="@(() => Model.AccountId)"/>
+    </div>
 
-<div class="mb-3">
-    <label for="sum">Enter the sum:</label>
-    <input id="sum" class="form-control" placeholder="Sum" @onchange="@(x => Sum = Convert.ToDouble(x.Value))">
-</div>
+    <div class="mb-3">
+        <label for="sum">Enter the sum:</label>
+        <input id="sum" class="form-control" placeholder="Sum" @onchange="@(x => Model.Sum = Convert.ToDouble(x.Value))">
+        <ValidationMessage For="@(() => Model.Sum)"/>
+    </div>
 
-<div>
-    <button class="btn btn-primary" @onclick="@CreateTransactionAsync">Add</button>
-</div>
+    <div>
+        <button class="btn btn-primary" @onclick="@CreateTransactionAsync">Add</button>
+    </div>
+</EditForm>
 
 @code {
-    private List<AccountModel>? _accounts = new();
-    public int AccountId { get; set; }
-    public double Sum { get; set; }
+    private ValidationMessageStore _validationMessageStore = default!;
+    private List<AccountModel> _accounts = new();
+    private AddTransactionModel Model { get; set; } = new();
+    private EditContext EditContext { get; set; } = default!;
+    private List<ValidationRuleModel> ValidationRules { get; set; } = new();
     [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        _accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account");
+        EditContext = new EditContext(Model);
+        _validationMessageStore = new ValidationMessageStore(EditContext);
+        SetValidationRules();
+        _accounts = await Http.GetFromJsonAsync<List<AccountModel>?>("account") ?? new List<AccountModel>();
     }
 
     private async Task CreateTransactionAsync()
     {
+        var result = ValidateContext();
+        if (!result)
+        {
+            return;
+        }
+
         await Http.PostAsJsonAsync("transaction/create", new CreateTransactionCommand
         {
-            AccountId = AccountId,
-            Sum = Sum
+            AccountId = Model.AccountId,
+            Sum = Model.Sum
         });
 
         await BlazoredModal.CloseAsync();
     }
 
+    private bool ValidateContext()
+    {
+        _validationMessageStore.Clear();
+        foreach (var validationRule in ValidationRules.Where(validationRule => !validationRule.Satisfy()))
+        {
+            _validationMessageStore.Add(validationRule.Accessor, validationRule.Message);
+        }
+
+        var result = EditContext.Validate();
+        return result;
+    }
+
+    private void SetValidationRules()
+    {
+        ValidationRules.Clear();
+        ValidationRules.Add(new ValidationRuleModel
+        {
+            Satisfy = () => Model.AccountId != 0,
+            Accessor = () => Model.AccountId,
+            Message = "Please select an account"
+        });
+        ValidationRules.Add(new ValidationRuleModel
+        {
+            Satisfy = () => Model.Sum != 0,
+            Accessor = () => Model.Sum,
+            Message = "Sum must not be equal to 0"
+        });
+    }
 }

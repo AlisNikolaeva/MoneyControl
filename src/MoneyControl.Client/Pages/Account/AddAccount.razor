@@ -1,47 +1,87 @@
+@using MoneyControl.Client.Pages.Account.Models
+@using MoneyControl.Client.Validation
+@using MoneyControl.Shared.Models
 @using MoneyControl.Shared.Queries.Account.CreateAccount
 @inject HttpClient Http
 
-<div class="mb-3">
-    <label for="name">Enter the account name:</label>
-    <input id="name" class="form-control" placeholder="Account Name" @onchange="@(x => Name = x.Value.ToString())">
-</div>
+<EditForm EditContext="@EditContext">
+    <div class="mb-3">
+        <label for="name">Enter the account name:</label>
+        <input id="name" class="form-control" placeholder="Account Name" @onchange="@(x => Model.Name = x.Value?.ToString())">
+        <ValidationMessage For="@(() => Model.Name)"/>
+    </div>
 
-<div class="mb-3">
-    <label for="currency">Enter the account currency:</label>
-    <select id="currency" 
-            class="form-select" 
-            placeholder="Account Currency" 
-            @onchange="@(x => Currency = x.Value.ToString())">
-        @foreach (var item in Currencies)
-        {
-            <option value="@item.Key">@item.Key</option>
-        }
-    </select>
-</div>
+    <div class="mb-3">
+        <label for="currency">Enter the account currency:</label>
+        <select id="currency"
+                class="form-select"
+                placeholder="Account Currency"
+                @onchange="@(x => Model.Currency = x.Value?.ToString())">
+            @foreach (var item in Currencies)
+            {
+                <option value="@item.Key">@item.Key</option>
+            }
+        </select>
+    </div>
 
-<div>
-    <button class="btn btn-primary" @onclick="@CreateAccountAsync">Add</button>
-</div>
+    <div>
+        <button class="btn btn-primary" @onclick="@CreateAccountAsync">Add</button>
+    </div>
+</EditForm>
 
 @code {
-    public string Name { get; set; }
-    public string Currency { get; set; } = "USD";
-    public Dictionary<string, string> Currencies { get; set; } = new();
+    private ValidationMessageStore _validationMessageStore = default!;
+    private EditContext EditContext { get; set; } = default!;
+    private List<ValidationRuleModel> ValidationRules { get; set; } = new();
+    private AddAccountModel Model { get; set; } = new();
+    private Dictionary<string, string> Currencies { get; set; } = new();
     [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
-    
+
     protected override async Task OnParametersSetAsync()
     {
-        Currencies = await Http.GetFromJsonAsync<Dictionary<string, string>>("currencies.json");
+        EditContext = new EditContext(new AccountModel());
+        _validationMessageStore = new ValidationMessageStore(EditContext);
+        SetValidationRules();
+        Currencies = await Http.GetFromJsonAsync<Dictionary<string, string>>("currencies.json") ?? new Dictionary<string, string>();
     }
-    
+
     private async Task CreateAccountAsync()
     {
+        var result = ValidateContext();
+        if (!result)
+        {
+            return;
+        }
+
         await Http.PostAsJsonAsync("account/create", new CreateAccountCommand
         {
-            Name = Name,
-            Currency = Currency
+            Name = Model.Name!,
+            Currency = Model.Currency!
         });
-        
+
         await BlazoredModal.CloseAsync();
+    }
+
+    private bool ValidateContext()
+    {
+        _validationMessageStore.Clear();
+        foreach (var validationRule in ValidationRules.Where(validationRule => !validationRule.Satisfy()))
+        {
+            _validationMessageStore?.Add(validationRule.Accessor, validationRule.Message);
+        }
+
+        var result = EditContext.Validate();
+        return result;
+    }
+
+    private void SetValidationRules()
+    {
+        ValidationRules.Clear();
+        ValidationRules.Add(new ValidationRuleModel
+        {
+            Satisfy = () => !string.IsNullOrWhiteSpace(Model.Name),
+            Accessor = () => Model.Name!,
+            Message = "Name must not be empty"
+        });
     }
 }
