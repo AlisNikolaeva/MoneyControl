@@ -30,7 +30,7 @@ public class CreateTransactionHandler : IRequestHandler<CreateTransactionCommand
         {
             Account = account,
             Sum = request.Sum,
-            DateUtc = request.DateUtc
+            DateUtc = request.DateUtc.Date
         };
         
         await _dbContext.Transactions.AddAsync(transaction, cancellationToken);
