@@ -1,3 +1,7 @@
+.nav-title {
+    justify-content: center;
+}
+
 .navbar-toggler {
     background-color: rgba(255, 255, 255, 0.1);
 }
@@ -78,5 +82,11 @@
         /* Allow sidebar to scroll for tall menus */
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .nav-title {
+        justify-content: space-between;
     }
 }

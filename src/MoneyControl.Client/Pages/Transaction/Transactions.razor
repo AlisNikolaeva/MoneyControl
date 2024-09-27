@@ -1,11 +1,18 @@
 @page "/"
+@using System.Globalization
 @using MoneyControl.Shared.Models
 @inject HttpClient Http
 
-<h3>Transactions</h3>
+<HeaderComponent HeaderText="Transactions"
+                 ActionButtonText="Add Transaction"
+                 OnClick="@AddTransactionAsync">
+</HeaderComponent>
 
-<div class="card p-2">
+<div class="card p-2 mb-3">
     <span class="d-flex flex-wrap gap-2 pb-2">
+        <label>
+            <input type="checkbox" class="form-check-input" checked="@(_selectedAccounts.Count == _accounts.Count)" @onchange="@OnSelectAllAccounts"> Select All Accounts
+        </label>
         @foreach (var item in _accounts)
         {
             <label>
@@ -13,14 +20,23 @@
             </label>
         }
     </span>
+    
+    <div class="pt-3">
+        <label>Period:</label>
+        <span class="d-flex py-2 gap-2">
+            <input class="form-control"
+                   type="date"
+                   @bind="@StartDate">
+            <input class="form-control"
+                   type="date"
+                   @bind="@EndDate">
+        </span>
+    </div>
+    
     <span class="d-flex gap-2">
         <button @onclick="@GetFilteredTransactionsAsync" type="button" class="btn btn-primary">Apply</button>
         <button @onclick="@GetAllTransactionsAsync" type="button" class="btn btn-secondary">Reset</button>
     </span>
-</div>
-
-<div class="py-2 d-flex justify-content-end">
-    <button @onclick="@AddTransactionAsync" type="button" class="btn btn-primary">Add Transaction</button>
 </div>
 
 <div>
@@ -28,9 +44,9 @@
         <thead>
         <tr>
             <th scope="col">Id</th>
-            <th scope="col">AccountName</th>
+            <th scope="col">Account Name</th>
             <th scope="col">Sum</th>
-            <th scope="col">DateUtc</th>
+            <th scope="col">Date</th>
             <th scope="col"></th>
         </tr>
         </thead>
@@ -43,7 +59,7 @@
                 <td>
                     <span class="fw-bold @SumColor(item.Sum)">@(item.Sum > 0 ? "+" : string.Empty)@item.Sum</span>
                 </td>
-                <td>@item.DateUtc.ToLongDateString()</td>
+                <td>@item.DateUtc.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)</td>
                 <td>
                     <span class="d-flex gap-2">
                         <button class="border-0 bg-transparent">
@@ -65,17 +81,16 @@
     private List<int> _selectedAccounts = new();
     private List<TransactionModel> _transactions = new();
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account");
         _accounts.Clear();
 
-        var selectedAccounts = _accounts.Select(x => x.Id).ToList();
-        _selectedAccounts.Clear();
-        _selectedAccounts.AddRange(selectedAccounts);
-
         _accounts.AddRange(accounts);
+        _selectedAccounts = _accounts.Select(x => x.Id).ToList();
 
         _transactions = await Http.GetFromJsonAsync<List<TransactionModel>>("transaction");
     }
@@ -87,6 +102,8 @@
         {
             result += $"&accountids[{i}]={_selectedAccounts[i]}";
         }
+        
+        result += $"&startutc={StartDate?.Date}&endutc={EndDate?.Date}";
 
         var transactions = await Http.GetFromJsonAsync<List<TransactionModel>>($"transaction/search?{result}");
         _transactions.Clear();
@@ -95,9 +112,15 @@
 
     private async Task GetAllTransactionsAsync()
     {
-        await ReloadTransactionsAsync();
-
+        StartDate = null;
+        EndDate = null;
+        
+        _transactions.Clear();
+        var transactions = await Http.GetFromJsonAsync<List<TransactionModel>>("transaction");
+        _transactions.AddRange(transactions);
+        
         _selectedAccounts.Clear();
+        _selectedAccounts = _accounts.Select(x => x.Id).ToList();
     }
 
     private void ChangeAccountsFilter(int accountId)
@@ -112,6 +135,18 @@
         }
     }
 
+    private void OnSelectAllAccounts()
+    {
+        if (_selectedAccounts.Count == _accounts.Count)
+        {
+            _selectedAccounts.Clear();
+        }
+        else
+        {
+            _selectedAccounts = _accounts.Select(x => x.Id).ToList();
+        }
+    }
+
     private async Task AddTransactionAsync()
     {
         var addTransactionModel = Modal.Show<AddTransaction>("Add Transaction");
@@ -122,7 +157,7 @@
             return;
         }
 
-        await ReloadTransactionsAsync();
+        await GetFilteredTransactionsAsync();
     }
 
     private async Task DeleteTransactionAsync(int id)
@@ -136,7 +171,7 @@
             return;
         }
 
-        await ReloadTransactionsAsync();
+        await GetFilteredTransactionsAsync();
     }
     
     private async Task EditTransactionAsync(TransactionModel transaction)
@@ -158,14 +193,7 @@
             return;
         }
 
-        await ReloadTransactionsAsync();
-    }
-
-    private async Task ReloadTransactionsAsync()
-    {
-        _transactions.Clear();
-        var transactions = await Http.GetFromJsonAsync<List<TransactionModel>>("transaction");
-        _transactions.AddRange(transactions);
+        await GetFilteredTransactionsAsync();
     }
 
     private string SumColor(double sum)
