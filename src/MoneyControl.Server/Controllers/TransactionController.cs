@@ -49,7 +49,7 @@ public class TransactionController : ControllerBase
     }
     
     [HttpGet("search")]
-    public async Task<IEnumerable<TransactionModel>> Search([FromQuery]SearchTransactionsQuery query)
+    public async Task<TransactionsModel> Search([FromQuery]SearchTransactionsQuery query)
     {
         var transactions = await _mediator.Send(query);
         return transactions;

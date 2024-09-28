@@ -6,7 +6,7 @@ using MoneyControl.Shared.Queries.Transaction.SearchTransactions;
 
 namespace MoneyControl.Application.Handlers.Transaction.SearchTransactions;
 
-public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery, IEnumerable<TransactionModel>>
+public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery, TransactionsModel>
 {
     private readonly ApplicationDbContext _dbContext;
 
@@ -15,7 +15,7 @@ public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<TransactionModel>> Handle(SearchTransactionsQuery request, CancellationToken cancellationToken)
+    public async Task<TransactionsModel> Handle(SearchTransactionsQuery request, CancellationToken cancellationToken)
     {
         var query = _dbContext.Transactions.Where(x => request.AccountIds.Contains(x.Account.Id));
         if (request.StartUtc.HasValue)
@@ -27,6 +27,13 @@ public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery
         {
             query = query.Where(x => x.DateUtc <= request.EndUtc.Value);
         }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        query = query.OrderByDescending(x => x.DateUtc)
+            .ThenBy(x => x.Account.Name)
+            .Skip(request.Offset)
+            .Take(request.Count);
         
         var filteredTransactions = await query.Select(x => new TransactionModel
         {
@@ -37,6 +44,12 @@ public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery
             Sum = x.Sum
         }).ToListAsync(cancellationToken);
 
-        return filteredTransactions;
+        var result = new TransactionsModel
+        {
+            Items = filteredTransactions,
+            TotalCount = totalCount
+        };
+
+        return result;
     }
 }

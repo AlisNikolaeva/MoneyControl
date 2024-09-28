@@ -11,7 +11,7 @@
 <div class="card p-2 mb-3">
     <span class="d-flex flex-wrap gap-2 pb-2">
         <label>
-            <input type="checkbox" class="form-check-input" checked="@(_selectedAccounts.Count == _accounts.Count)" @onchange="@OnSelectAllAccounts"> Select All Accounts
+            <input type="checkbox" class="form-check-input" checked="@(_selectedAccounts.Count == _accounts.Count)" @onchange="@SelectAllAccounts"> Select All Accounts
         </label>
         @foreach (var item in _accounts)
         {
@@ -20,7 +20,7 @@
             </label>
         }
     </span>
-    
+
     <div class="pt-3">
         <label>Period:</label>
         <span class="d-flex py-2 gap-2">
@@ -32,14 +32,14 @@
                    @bind="@EndDate">
         </span>
     </div>
-    
+
     <span class="d-flex gap-2">
-        <button @onclick="@GetFilteredTransactionsAsync" type="button" class="btn btn-primary">Apply</button>
-        <button @onclick="@GetAllTransactionsAsync" type="button" class="btn btn-secondary">Reset</button>
+        <button @onclick="@ApplyFilterAsync" type="button" class="btn btn-primary">Apply</button>
+        <button @onclick="@ResetFilterAsync" type="button" class="btn btn-secondary">Reset</button>
     </span>
 </div>
 
-<div>
+<div class="mb-3">
     <table class="table table-striped table-hover table-bordered">
         <thead>
         <tr>
@@ -57,7 +57,7 @@
                 <th>@item.Id</th>
                 <td>@item.AccountName</td>
                 <td>
-                    <span class="fw-bold @SumColor(item.Sum)">@(item.Sum > 0 ? "+" : string.Empty)@item.Sum</span>
+                    <span class="fw-bold @GetSumCss(item.Sum)">@(item.Sum > 0 ? "+" : string.Empty)@item.Sum</span>
                 </td>
                 <td>@item.DateUtc.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)</td>
                 <td>
@@ -74,53 +74,60 @@
         }
         </tbody>
     </table>
+    @if (_totalCount > _transactions.Count)
+    {
+        <button class="btn btn-light w-100" @onclick="@ShowMoreTransactionsAsync">Show More Transactions</button>
+    }
 </div>
 
 @code {
     private List<AccountModel> _accounts = new();
     private List<int> _selectedAccounts = new();
     private List<TransactionModel> _transactions = new();
+    private int _totalCount;
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public DateTime? StartDate { get; set; }
-    public DateTime? EndDate { get; set; }
+    private DateTime? StartDate { get; set; }
+    private DateTime? EndDate { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account");
         _accounts.Clear();
+        _accounts.AddRange(accounts!);
 
-        _accounts.AddRange(accounts);
         _selectedAccounts = _accounts.Select(x => x.Id).ToList();
 
-        _transactions = await Http.GetFromJsonAsync<List<TransactionModel>>("transaction");
+        await Search(0);
     }
-
-    private async Task GetFilteredTransactionsAsync()
+    
+    private async Task Search(int offset)
     {
-        var result = string.Empty;
+        var accounts = string.Empty;
         for (var i = 0; i < _selectedAccounts.Count; i++)
         {
-            result += $"&accountids[{i}]={_selectedAccounts[i]}";
+            accounts += $"&accountids[{i}]={_selectedAccounts[i]}";
         }
-        
-        result += $"&startutc={StartDate?.Date}&endutc={EndDate?.Date}";
 
-        var transactions = await Http.GetFromJsonAsync<List<TransactionModel>>($"transaction/search?{result}");
-        _transactions.Clear();
-        _transactions.AddRange(transactions);
+        var result = (await Http.GetFromJsonAsync<TransactionsModel>($"transaction/search?count=20{accounts}&offset={offset}&startutc={StartDate:yyyy-MM-dd}&endutc={EndDate:yyyy-MM-dd}"))!;
+        _transactions.AddRange(result.Items);
+        _totalCount = result.TotalCount;
     }
 
-    private async Task GetAllTransactionsAsync()
+    private async Task ResetFilterAsync()
     {
+        _selectedAccounts = _accounts.Select(x => x.Id).ToList();
+
+        _transactions.Clear();
+        await Search(0);
+
         StartDate = null;
         EndDate = null;
-        
+    }
+
+    private async Task ApplyFilterAsync()
+    {
         _transactions.Clear();
-        var transactions = await Http.GetFromJsonAsync<List<TransactionModel>>("transaction");
-        _transactions.AddRange(transactions);
-        
-        _selectedAccounts.Clear();
-        _selectedAccounts = _accounts.Select(x => x.Id).ToList();
+        await Search(0);
     }
 
     private void ChangeAccountsFilter(int accountId)
@@ -135,7 +142,7 @@
         }
     }
 
-    private void OnSelectAllAccounts()
+    private void SelectAllAccounts()
     {
         if (_selectedAccounts.Count == _accounts.Count)
         {
@@ -147,33 +154,39 @@
         }
     }
 
+    private async Task ShowMoreTransactionsAsync()
+    {
+        var offset = _transactions.Count;
+        await Search(offset);
+    }
+
     private async Task AddTransactionAsync()
     {
-        var addTransactionModel = Modal.Show<AddTransaction>("Add Transaction");
-        var result = await addTransactionModel.Result;
+        var modalReference = Modal.Show<AddTransaction>("Add Transaction");
+        var result = await modalReference.Result;
 
         if (result.Cancelled)
         {
             return;
         }
 
-        await GetFilteredTransactionsAsync();
+        await ApplyFilterAsync();
     }
 
     private async Task DeleteTransactionAsync(int id)
     {
         var parameters = new ModalParameters().Add("id", id);
-        var deleteTransactionModel = Modal.Show<DeleteTransaction>("Delete Transaction", parameters);
-        var result = await deleteTransactionModel.Result;
+        var modalReference = Modal.Show<DeleteTransaction>("Delete Transaction", parameters);
+        var result = await modalReference.Result;
 
         if (result.Cancelled)
         {
             return;
         }
 
-        await GetFilteredTransactionsAsync();
+        await ApplyFilterAsync();
     }
-    
+
     private async Task EditTransactionAsync(TransactionModel transaction)
     {
         var copyTransaction = new TransactionModel
@@ -185,19 +198,20 @@
             Sum = transaction.Sum
         };
         var parameters = new ModalParameters().Add("transaction", copyTransaction);
-        var editTransactionModel = Modal.Show<EditTransaction>("Edit Transaction", parameters);
-        var result = await editTransactionModel.Result;
+        var modalReference = Modal.Show<EditTransaction>("Edit Transaction", parameters);
+        var result = await modalReference.Result;
 
         if (result.Cancelled)
         {
             return;
         }
 
-        await GetFilteredTransactionsAsync();
+        await ApplyFilterAsync();
     }
 
-    private string SumColor(double sum)
+    private static string GetSumCss(double sum)
     {
         return sum > 0 ? "text-success" : "text-danger";
     }
+
 }
