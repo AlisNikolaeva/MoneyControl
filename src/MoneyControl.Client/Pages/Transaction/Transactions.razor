@@ -1,7 +1,9 @@
 @page "/"
 @using System.Globalization
+@using MoneyControl.Shared
 @using MoneyControl.Shared.Models
 @inject HttpClient Http
+@inject IJSRuntime JsRuntime
 
 <HeaderComponent HeaderText="Transactions"
                  ActionButtonText="Add Transaction"
@@ -37,6 +39,10 @@
         <button @onclick="@ApplyFilterAsync" type="button" class="btn btn-primary">Apply</button>
         <button @onclick="@ResetFilterAsync" type="button" class="btn btn-secondary">Reset</button>
     </span>
+</div>
+
+<div class="d-flex justify-content-end pb-3">
+    <button @onclick="@ExportToCsvAsync" type="button" class="btn btn-primary">Export</button>
 </div>
 
 <div class="mb-3">
@@ -99,7 +105,22 @@
 
         await Search(0);
     }
-    
+
+    private async Task ExportToCsvAsync()
+    {
+        var accounts = string.Empty;
+        for (var i = 0; i < _selectedAccounts.Count; i++)
+        {
+            accounts += $"&accountids[{i}]={_selectedAccounts[i]}";
+        }
+
+        var result = (await Http.GetFromJsonAsync<byte[]>($"transaction/csv?{accounts}" +
+                                                          $"&startutc={StartDate:yyyy-MM-dd}" +
+                                                          $"&endutc={EndDate:yyyy-MM-dd}"))!;
+        await JsRuntime.InvokeVoidAsync("downloadFile", $"report from {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}.csv", 
+            result);
+    }
+
     private async Task Search(int offset)
     {
         var accounts = string.Empty;

@@ -1,6 +1,7 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using MoneyControl.Application.CSV;
 using MoneyControl.Application.Handlers.Account.CreateAccount;
 using MoneyControl.Infrastructure;
 using MoneyControl.Server.Validators.Account;
@@ -27,6 +28,7 @@ public class Program
         builder.Services.AddScoped<IValidator<UpdateAccountCommand>, UpdateAccountCommandValidator>();
         builder.Services.AddScoped<IValidator<CreateTransactionCommand>, CreateTransactionCommandValidator>();
         builder.Services.AddScoped<IValidator<UpdateTransactionCommand>, UpdateTransactionCommandValidator>();
+        builder.Services.AddScoped<CsvReport>();
 
         var connection = builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<ApplicationDbContext>(option => option.UseSqlServer(connection));
