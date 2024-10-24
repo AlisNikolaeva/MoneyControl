@@ -19,9 +19,9 @@ public class GetTransactionsHandler : IRequestHandler<GetTransactionsCommand, IE
     {
         var entities = await _dbContext.Transactions
             .Include(transactionEntity => transactionEntity.Account)
+            .Where(x => x.Account.UserId == Context.UserContext.UserId)
             .ToListAsync(cancellationToken);
         var transactions = new List<TransactionModel>();
-        
         
         foreach (var item in entities)
         {

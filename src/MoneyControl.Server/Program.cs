@@ -1,6 +1,7 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using MoneyControl.Application;
 using MoneyControl.Application.CSV;
 using MoneyControl.Application.Handlers.Account.CreateAccount;
 using MoneyControl.Infrastructure;
@@ -15,6 +16,7 @@ namespace MoneyControl.Server;
 
 public class Program
 {
+    
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -37,7 +39,7 @@ public class Program
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         
         var app = builder.Build();
-
+        
         if (app.Environment.IsDevelopment())
         {
             app.UseWebAssemblyDebugging();
@@ -53,6 +55,7 @@ public class Program
         app.UseBlazorFrameworkFiles();
         app.UseStaticFiles();
 
+        app.UseMiddleware<UserContextMiddleware>();
         app.UseMiddleware<ValidationExceptionMiddleware>();
         app.UseRouting();
         app.UseCors("AllowAll");

@@ -18,7 +18,7 @@ public class UpdateAccountHandler : IRequestHandler<UpdateAccountCommand>
     
     public async Task Handle(UpdateAccountCommand request, CancellationToken cancellationToken)
     {
-        var account = _dbContext.Accounts.FirstOrDefault(x => x.Id == request.Id);
+        var account = _dbContext.Accounts.FirstOrDefault(x => x.Id == request.Id && x.UserId == Context.UserContext.UserId);
         if (account == null)
         {
             throw new ValidationException("Account doesn't exist", [new ValidationFailure("Name", "Account doesn't exist")]);

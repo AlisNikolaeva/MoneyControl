@@ -30,7 +30,8 @@ public class CreateAccountHandler : IRequestHandler<CreateAccountCommand, int>
         {
             Balance = 0,
             Currency = request.Currency,
-            Name = request.Name
+            Name = request.Name,
+            UserId = Context.UserContext.UserId
         };
 
         await _dbContext.Accounts.AddAsync(account, cancellationToken);

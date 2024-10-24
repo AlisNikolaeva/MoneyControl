@@ -17,7 +17,8 @@ public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery
 
     public async Task<TransactionsModel> Handle(SearchTransactionsQuery request, CancellationToken cancellationToken)
     {
-        var query = _dbContext.Transactions.Where(x => request.AccountIds.Contains(x.Account.Id));
+        var query = _dbContext.Transactions.Where(x => request.AccountIds.Contains(x.Account.Id))
+            .Where(x => x.Account.UserId == Context.UserContext.UserId);
         if (request.StartUtc.HasValue)
         {
             query = query.Where(x => x.DateUtc >= request.StartUtc.Value);
