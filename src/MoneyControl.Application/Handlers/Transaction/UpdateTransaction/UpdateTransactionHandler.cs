@@ -19,7 +19,7 @@ public class UpdateTransactionHandler : IRequestHandler<UpdateTransactionCommand
     public async Task Handle(UpdateTransactionCommand request, CancellationToken cancellationToken)
     {
         var transaction = _dbContext.Transactions.Include(transactionEntity => transactionEntity.Account)
-            .Where(x => x.Account.UserId == Context.UserContext.UserId)
+            .Where(x => x.Account.UserId == UserContext.UserId)
             .FirstOrDefault(x => x.Id == request.Id);
         if (transaction == null)
         {

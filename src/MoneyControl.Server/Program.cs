@@ -1,7 +1,6 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using MoneyControl.Application;
 using MoneyControl.Application.CSV;
 using MoneyControl.Application.Handlers.Account.CreateAccount;
 using MoneyControl.Infrastructure;

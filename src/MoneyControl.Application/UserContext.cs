@@ -1,6 +1,11 @@
 namespace MoneyControl.Application;
 
-public class UserContext
+public static class UserContext
 {
-    public Guid UserId { get; set; }
+    public static Guid UserId => _asyncLocalUserContext.Value!.UserId;
+    private static AsyncLocal<UserDetails> _asyncLocalUserContext = new();
+    public static void SetUserContext(Guid userId)
+    {
+        _asyncLocalUserContext.Value = new UserDetails { UserId = userId };
+    }
 }

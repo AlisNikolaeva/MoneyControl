@@ -20,7 +20,7 @@ public class CreateTransactionHandler : IRequestHandler<CreateTransactionCommand
     public async Task<int> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
     {
         var account = await _dbContext.Accounts.FirstOrDefaultAsync
-            (x => x.Id == request.AccountId && x.UserId == Context.UserContext.UserId, cancellationToken);
+            (x => x.Id == request.AccountId && x.UserId == UserContext.UserId, cancellationToken);
         if (account == null)
         {
             throw new ValidationException("Account does not exist.", 
