@@ -1,0 +1,103 @@
+@inject HttpClient Http
+@page "/Categories"
+@using MoneyControl.Shared.Models
+
+<HeaderComponent HeaderText="Categories"
+                 AddButtonText="Add Category"
+                 OnAdd="@AddCategoryAsync">
+</HeaderComponent>
+
+<table class="table table-striped table-hover table-bordered">
+    <thead>
+    <tr>
+        <th style="width: 5%" scope="col">Id</th>
+        <th scope="col">Name</th>
+        <th style="width: 5%" scope="col"></th>
+    </tr>
+    </thead>
+    @if (_categories.Any())
+    {
+        <tbody class="table-group-divider">
+        @foreach (var item in _categories)
+        {
+            <tr scope="row">
+                <th>@item.Id</th>
+                <td>@item.Name</td>
+                <td>
+                    <span class="d-flex gap-2">
+                        <button class="border-0 bg-transparent">
+                            <i class="fa-solid fa-pen" @onclick="@(() => EditCategoryAsync(item))"></i>
+                        </button>
+                        <button class="border-0 bg-transparent">
+                            <i class="fa-solid fa-trash-can text-danger" @onclick="@(() => DeleteCategoryAsync(item.Id))"></i>
+                        </button>
+                    </span>
+                </td>
+            </tr>
+        }
+        </tbody>
+    }
+</table>
+
+@code {
+    private List<CategoryModel> _categories = new();
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadCategoriesAsync();
+    }
+
+    private async Task AddCategoryAsync()
+    {
+        var addCategoryModal = Modal.Show<AddCategory>("Add Category");
+        var result = await addCategoryModal.Result;
+
+        if (result.Cancelled)
+        {
+            return;
+        }
+
+        await ReloadCategoriesAsync();
+    }
+
+    private async Task EditCategoryAsync(CategoryModel category)
+    {
+        var copyCategory = new CategoryModel
+        {
+            Id = category.Id,
+            Name = category.Name
+        };
+        
+        var parameters = new ModalParameters().Add("category", copyCategory);
+        var modalReference = Modal.Show<EditCategory>("Edit Category", parameters);
+        var result = await modalReference.Result;
+        if (result.Cancelled)
+        {
+            return;
+        }
+
+        await ReloadCategoriesAsync();
+    }
+
+    private async Task DeleteCategoryAsync(int id)
+    {
+        var parameters = new ModalParameters().Add("id", id);
+        var deleteCategoryModel = Modal.Show<DeleteCategory>("Delete Category", parameters);
+        var result = await deleteCategoryModel.Result;
+        if (result.Cancelled)
+        {
+            return;
+        }
+
+        await ReloadCategoriesAsync();
+    }
+
+    private async Task ReloadCategoriesAsync()
+    {
+        _categories.Clear();
+        var categories = await Http.GetFromJsonAsync<List<CategoryModel>>("category");
+        _categories.AddRange(categories);
+    }
+
+}

@@ -5,13 +5,34 @@ namespace MoneyControl.Client.Pages;
 public class HeaderComponentBase : ComponentBase
 {
     [Parameter] public string HeaderText { get; set; }
-    [Parameter] public string ActionButtonText { get; set; }
-    [Parameter] public EventCallback OnClick { get; set; }
-    protected void OnClickHandler()
+    [Parameter] public string AddButtonText { get; set; }
+    [Parameter] public string ExportButtonText { get; set; }
+    [Parameter] public string FilterButtonText { get; set; }
+    [Parameter] public EventCallback OnAdd { get; set; }
+    [Parameter] public EventCallback OnExport { get; set; }
+    [Parameter] public EventCallback OnFilter { get; set; }
+
+    protected void OnAddHandler()
     {
-        if (OnClick.HasDelegate)
+        if (OnAdd.HasDelegate)
         {
-            OnClick.InvokeAsync();
+            OnAdd.InvokeAsync();
+        }
+    }
+
+    protected void OnExportHandler()
+    {
+        if (OnExport.HasDelegate)
+        {
+            OnExport.InvokeAsync();
+        }
+    }
+
+    protected void OnFilterHandler()
+    {
+        if (OnFilter.HasDelegate)
+        {
+            OnFilter.InvokeAsync();
         }
     }
 }

@@ -2,5 +2,20 @@
 
 <div class="d-flex justify-content-between py-3">
     <h3>@HeaderText</h3>
-    <button @onclick="@(OnClickHandler)" class="btn btn-primary">@ActionButtonText</button>
+    <span class="d-flex gap-2">
+        @if (!string.IsNullOrWhiteSpace(AddButtonText))
+        {
+            <button @onclick="@(OnAddHandler)" class="btn btn-primary">@AddButtonText</button>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(ExportButtonText))
+        {
+            <button @onclick="@(OnExportHandler)" class="btn btn-primary">@ExportButtonText</button>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(FilterButtonText))
+        {
+            <button @onclick="@(OnFilterHandler)" class="btn btn-primary">@FilterButtonText</button>
+        }
+    </span>
 </div>

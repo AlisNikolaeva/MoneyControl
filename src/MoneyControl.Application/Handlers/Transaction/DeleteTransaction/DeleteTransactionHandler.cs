@@ -15,15 +15,16 @@ public class DeleteTransactionHandler : IRequestHandler<DeleteTransactionQuery>
     {
         _dbContext = dbContext;
     }
-    
+
     public async Task Handle(DeleteTransactionQuery request, CancellationToken cancellationToken)
     {
-        var transaction = await _dbContext.Transactions.Include(transactionEntity => transactionEntity.Account)
-            .Where(x => x.Account.UserId == UserContext.UserId)
-            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+        var transaction = await _dbContext.Transactions
+            .Include(transactionEntity => transactionEntity.Account)
+            .FirstOrDefaultAsync(x => x.Id == request.Id && x.Account.UserId == UserContext.UserId, cancellationToken);
+        
         if (transaction == null)
         {
-            throw new ValidationException("Transaction doesn't exist", 
+            throw new ValidationException("Transaction doesn't exist",
                 [new ValidationFailure("Id", "Transaction doesn't exist")]);
         }
 

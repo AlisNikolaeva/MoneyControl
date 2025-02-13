@@ -18,6 +18,7 @@ public class CsvReport
     {
         var query = _dbContext.Transactions
             .Where(x => parameters.AccountIds.Contains(x.Account.Id));
+
         if (parameters.StartUtc.HasValue)
         {
             query = query.Where(x => x.DateUtc >= parameters.StartUtc.Value);
@@ -37,8 +38,9 @@ public class CsvReport
             AccountId = x.Account.Id,
             AccountName = x.Account.Name,
             Sum = x.Sum,
-            DateUtc = x.DateUtc.ToShortDateString(),
-            Currency = x.Account.Currency
+            Currency = x.Account.Currency,
+            Category = x.Category.Name,
+            DateUtc = x.DateUtc.ToShortDateString()
         }).ToListAsync(cancellationToken);
 
         using var memoryStream = new MemoryStream();

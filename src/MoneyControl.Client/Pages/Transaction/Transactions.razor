@@ -1,59 +1,29 @@
 @page "/"
 @using System.Globalization
-@using MoneyControl.Shared
+@using MoneyControl.Client.Pages.Transaction.Models
 @using MoneyControl.Shared.Models
 @inject HttpClient Http
 @inject IJSRuntime JsRuntime
 
 <HeaderComponent HeaderText="Transactions"
-                 ActionButtonText="Add Transaction"
-                 OnClick="@AddTransactionAsync">
+                 AddButtonText="Add Transaction"
+                 ExportButtonText="Export"
+                 FilterButtonText="Filter"
+                 OnAdd="@AddTransactionAsync"
+                 OnExport="@ExportToCsvAsync"
+                 OnFilter="@OpenFilterAsync">
 </HeaderComponent>
 
-<div class="card p-2 mb-3">
-    <span class="d-flex flex-wrap gap-2 pb-2">
-        <label>
-            <input type="checkbox" class="form-check-input" checked="@(_selectedAccounts.Count == _accounts.Count)" @onchange="@SelectAllAccounts"> Select All Accounts
-        </label>
-        @foreach (var item in _accounts)
-        {
-            <label>
-                <input type="checkbox" class="form-check-input" checked="@_selectedAccounts.Contains(item.Id)" @onchange="@(_ => ChangeAccountsFilter(item.Id))"> @item.Name
-            </label>
-        }
-    </span>
-
-    <div class="pt-3">
-        <label>Period:</label>
-        <span class="d-flex py-2 gap-2">
-            <input class="form-control"
-                   type="date"
-                   @bind="@StartDate">
-            <input class="form-control"
-                   type="date"
-                   @bind="@EndDate">
-        </span>
-    </div>
-
-    <span class="d-flex gap-2">
-        <button @onclick="@ApplyFilterAsync" type="button" class="btn btn-primary">Apply</button>
-        <button @onclick="@ResetFilterAsync" type="button" class="btn btn-secondary">Reset</button>
-    </span>
-</div>
-
-<div class="d-flex justify-content-end pb-3">
-    <button @onclick="@ExportToCsvAsync" type="button" class="btn btn-primary">Export</button>
-</div>
-
-<div class="mb-3">
+<div class="card mb-3">
     <table class="table table-striped table-hover table-bordered">
         <thead>
         <tr>
-            <th scope="col">Id</th>
+            <th style="width: 5%" scope="col">Id</th>
             <th scope="col">Account Name</th>
             <th scope="col">Sum</th>
+            <th scope="col">Category</th>
             <th scope="col">Date</th>
-            <th scope="col"></th>
+            <th style="width: 5%" scope="col"></th>
         </tr>
         </thead>
         <tbody class="table-group-divider">
@@ -65,6 +35,7 @@
                 <td>
                     <span class="fw-bold @GetSumCss(item.Sum)">@(item.Sum > 0 ? "+" : string.Empty)@item.Sum</span>
                 </td>
+                <td>@item.CategoryName</td>
                 <td>@item.DateUtc.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)</td>
                 <td>
                     <span class="d-flex gap-2">
@@ -91,18 +62,16 @@
     private List<int> _selectedAccounts = new();
     private List<TransactionModel> _transactions = new();
     private int _totalCount;
+    private DateTime? _startDate;
+    private DateTime? _endDate;
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    private DateTime? StartDate { get; set; }
-    private DateTime? EndDate { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account");
         _accounts.Clear();
         _accounts.AddRange(accounts!);
-
         _selectedAccounts = _accounts.Select(x => x.Id).ToList();
-
         await Search(0);
     }
 
@@ -115,9 +84,9 @@
         }
 
         var result = (await Http.GetFromJsonAsync<byte[]>($"transaction/csv?{accounts}" +
-                                                          $"&startutc={StartDate:yyyy-MM-dd}" +
-                                                          $"&endutc={EndDate:yyyy-MM-dd}"))!;
-        await JsRuntime.InvokeVoidAsync("downloadFile", $"report from {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}.csv", 
+                                                          $"&startutc={_startDate:yyyy-MM-dd}" +
+                                                          $"&endutc={_endDate:yyyy-MM-dd}"))!;
+        await JsRuntime.InvokeVoidAsync("downloadFile", $"report from {_startDate:yyyy-MM-dd} to {_endDate:yyyy-MM-dd}.csv",
             result);
     }
 
@@ -129,50 +98,10 @@
             accounts += $"&accountids[{i}]={_selectedAccounts[i]}";
         }
 
-        var result = (await Http.GetFromJsonAsync<TransactionsModel>($"transaction/search?count=20{accounts}&offset={offset}&startutc={StartDate:yyyy-MM-dd}&endutc={EndDate:yyyy-MM-dd}"))!;
+        var result = (await Http.GetFromJsonAsync<TransactionsModel>($"transaction/search?count=20{accounts}&offset={offset}&startutc={_startDate:yyyy-MM-dd}&endutc={_endDate:yyyy-MM-dd}"))!;
+        _transactions.Clear();
         _transactions.AddRange(result.Items);
         _totalCount = result.TotalCount;
-    }
-
-    private async Task ResetFilterAsync()
-    {
-        _selectedAccounts = _accounts.Select(x => x.Id).ToList();
-
-        _transactions.Clear();
-        await Search(0);
-
-        StartDate = null;
-        EndDate = null;
-    }
-
-    private async Task ApplyFilterAsync()
-    {
-        _transactions.Clear();
-        await Search(0);
-    }
-
-    private void ChangeAccountsFilter(int accountId)
-    {
-        if (_selectedAccounts.Contains(accountId))
-        {
-            _selectedAccounts.Remove(accountId);
-        }
-        else
-        {
-            _selectedAccounts.Add(accountId);
-        }
-    }
-
-    private void SelectAllAccounts()
-    {
-        if (_selectedAccounts.Count == _accounts.Count)
-        {
-            _selectedAccounts.Clear();
-        }
-        else
-        {
-            _selectedAccounts = _accounts.Select(x => x.Id).ToList();
-        }
     }
 
     private async Task ShowMoreTransactionsAsync()
@@ -185,27 +114,45 @@
     {
         var modalReference = Modal.Show<AddTransaction>("Add Transaction");
         var result = await modalReference.Result;
-
         if (result.Cancelled)
         {
             return;
         }
 
-        await ApplyFilterAsync();
+        await Search(0);
     }
 
-    private async Task DeleteTransactionAsync(int id)
+    private async Task OpenFilterAsync()
     {
-        var parameters = new ModalParameters().Add("id", id);
-        var modalReference = Modal.Show<DeleteTransaction>("Delete Transaction", parameters);
-        var result = await modalReference.Result;
+        var filterParameters = new FilterParametersModel
+        {
+            Accounts = _accounts,
+            SelectedAccounts = _selectedAccounts,
+            StartDate = _startDate,
+            EndDate = _endDate
+        };
 
+        var parameters = new ModalParameters().Add("FilterParameters", filterParameters);
+        var options = new ModalOptions
+        {
+            Size = ModalSize.Custom,
+            SizeCustomClass = "custom-modal-size"
+        };
+
+        var modalReference = Modal.Show<Filter>("Filter", parameters, options);
+        var result = await modalReference.Result;
         if (result.Cancelled)
         {
             return;
         }
 
-        await ApplyFilterAsync();
+        if (result.Data is FilterParametersModel data)
+        {
+            _startDate = data.StartDate;
+            _endDate = data.EndDate;
+        }
+
+        await Search(0);
     }
 
     private async Task EditTransactionAsync(TransactionModel transaction)
@@ -215,9 +162,11 @@
             Id = transaction.Id,
             AccountId = transaction.AccountId,
             AccountName = transaction.AccountName,
+            CategoryId = transaction.CategoryId,
             DateUtc = transaction.DateUtc,
             Sum = transaction.Sum
         };
+
         var parameters = new ModalParameters().Add("transaction", copyTransaction);
         var modalReference = Modal.Show<EditTransaction>("Edit Transaction", parameters);
         var result = await modalReference.Result;
@@ -227,7 +176,20 @@
             return;
         }
 
-        await ApplyFilterAsync();
+        await Search(0);
+    }
+
+    private async Task DeleteTransactionAsync(int id)
+    {
+        var parameters = new ModalParameters().Add("id", id);
+        var modalReference = Modal.Show<DeleteTransaction>("Delete Transaction", parameters);
+        var result = await modalReference.Result;
+        if (result.Cancelled)
+        {
+            return;
+        }
+
+        await Search(0);
     }
 
     private static string GetSumCss(double sum)

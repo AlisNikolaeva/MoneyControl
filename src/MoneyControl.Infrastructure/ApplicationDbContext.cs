@@ -9,6 +9,7 @@ public class ApplicationDbContext : DbContext
 {
     public DbSet<AccountEntity> Accounts { get; set; } = null!;
     public DbSet<TransactionEntity> Transactions { get; set; } = null!;
+    public DbSet<CategoryEntity> Categories { get; set; } = null!;
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> option) : base(option)
     { }
@@ -18,6 +19,7 @@ public class ApplicationDbContext : DbContext
         builder.HasDefaultSchema("dbo");
         builder.ApplyConfiguration(new AccountConfiguration());
         builder.ApplyConfiguration(new TransactionConfiguration());
+        builder.ApplyConfiguration(new CategoryConfiguration());
         base.OnModelCreating(builder);
     }
 }

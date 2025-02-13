@@ -5,10 +5,10 @@
 
 <EditForm EditContext="@EditContext">
     <div class="mb-3">
-        <label for="chooseAccount">Choose Account:</label>
-        <select id="chooseAccount"
-                @bind="@Transaction.AccountId"
-                class="form-select">
+        <label for="account">Select the account:</label>
+        <select id="account"
+                class="form-select"
+                @bind="@Transaction.AccountId">
             @foreach (var item in _accounts)
             {
                 <option value="@item.Id">@item.Name</option>
@@ -23,6 +23,19 @@
                placeholder="Sum"
                @bind="@Transaction.Sum">
         <ValidationMessage For="@(() => Transaction.Sum)"/>
+    </div>
+
+    <div class="mb-3">
+        <label for="category">Select the category:</label>
+        <select id="category"
+                class="form-select"
+                @bind="@Transaction.CategoryId">
+            <option value="">Please select a category</option>
+            @foreach (var item in _categories)
+            {
+                <option value="@item.Id">@item.Name</option>
+            }
+        </select>
     </div>
 
     <div class="mb-3">
@@ -43,6 +56,7 @@
 @code {
     private ValidationMessageStore _validationMessageStore = default!;
     private List<AccountModel> _accounts = new();
+    private List<CategoryModel> _categories = new();
     private EditContext EditContext { get; set; } = default!;
     private List<ValidationRuleModel> ValidationRules { get; set; } = new();
     [Parameter] public TransactionModel Transaction { get; set; } = new();
@@ -54,6 +68,7 @@
         _validationMessageStore = new ValidationMessageStore(EditContext);
         SetValidationRules();
         _accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account") ?? new();
+        _categories = await Http.GetFromJsonAsync<List<CategoryModel>?>("category") ?? new List<CategoryModel>();
     }
 
     private async Task UpdateTransactionAsync()
@@ -69,6 +84,7 @@
             Id = Transaction.Id,
             AccountId = Transaction.AccountId,
             Sum = Transaction.Sum,
+            CategoryId = Transaction.CategoryId,
             DateUtc = Transaction.DateUtc
         });
 
@@ -103,4 +119,5 @@
             Message = "Date must be greater than 01.01.0001"
         });
     }
+
 }

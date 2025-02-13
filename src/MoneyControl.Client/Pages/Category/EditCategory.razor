@@ -1,0 +1,75 @@
+@using MoneyControl.Client.Validation
+@using MoneyControl.Shared.Models
+@using MoneyControl.Shared.Queries.Category.UpdateCategory
+@inject HttpClient Http
+
+<EditForm EditContext="@EditContext">
+    <div class="mb-3">
+        <label for="name">Enter the category name:</label>
+        <input id="name"
+               class="form-control"
+               placeholder="Category Name"
+               @bind="@Category.Name">
+        <ValidationMessage For="@(() => Category.Name)"/>
+    </div>
+
+    <div>
+        <button class="btn btn-primary" @onclick="@UpdateCategoryAsync">Update</button>
+    </div>
+</EditForm>
+
+@code {
+    private ValidationMessageStore _validationMessageStore = default!;
+    private EditContext EditContext { get; set; } = default!;
+    private List<ValidationRuleModel> ValidationRules { get; set; } = new();
+    [Parameter] public CategoryModel Category { get; set; } = new();
+    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        EditContext = new EditContext(Category);
+        _validationMessageStore = new ValidationMessageStore(EditContext);
+        SetValidationRules();
+    }
+
+    private async Task UpdateCategoryAsync()
+    {
+        var result = ValidateContext();
+        if (!result)
+        {
+            return;
+        }
+
+        await Http.PostAsJsonAsync("category/update", new UpdateCategoryCommand
+        {
+            Id = Category.Id,
+            Name = Category.Name
+        });
+
+        await BlazoredModal.CloseAsync();
+    }
+
+    private bool ValidateContext()
+    {
+        _validationMessageStore.Clear();
+        foreach (var validationRule in ValidationRules.Where(validationRule => !validationRule.Satisfy()))
+        {
+            _validationMessageStore?.Add(validationRule.Accessor, validationRule.Message);
+        }
+
+        var result = EditContext.Validate();
+        return result;
+    }
+
+    private void SetValidationRules()
+    {
+        ValidationRules.Clear();
+        ValidationRules.Add(new ValidationRuleModel
+        {
+            Satisfy = () => !string.IsNullOrWhiteSpace(Category.Name),
+            Accessor = () => Category.Name,
+            Message = "Name must not be empty"
+        });
+    }
+
+}

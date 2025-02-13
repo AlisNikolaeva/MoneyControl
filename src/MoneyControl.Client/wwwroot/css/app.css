@@ -101,3 +101,9 @@ a, .btn-link {
 code {
     color: #c02d76;
 }
+
+.custom-modal-size {
+    max-width: 500px;
+    margin: 0 0 0 auto !important;
+    height: 100vh;
+}

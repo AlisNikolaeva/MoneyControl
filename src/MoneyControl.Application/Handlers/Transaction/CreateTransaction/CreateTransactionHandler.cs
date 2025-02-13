@@ -16,29 +16,37 @@ public class CreateTransactionHandler : IRequestHandler<CreateTransactionCommand
     {
         _dbContext = dbContext;
     }
-    
+
     public async Task<int> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
     {
-        var account = await _dbContext.Accounts.FirstOrDefaultAsync
-            (x => x.Id == request.AccountId && x.UserId == UserContext.UserId, cancellationToken);
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(
+            x => x.Id == request.AccountId && x.UserId == UserContext.UserId,
+            cancellationToken);
+
         if (account == null)
         {
-            throw new ValidationException("Account does not exist.", 
-                [new ValidationFailure("AccountId", "Account does not exist.")]);
+            throw new ValidationException("Account doesn't exist.",
+                [new ValidationFailure("AccountId", "Account doesn't exist.")]);
+        }
+
+        CategoryEntity category = null;
+        if (request.CategoryId != 0)
+        {
+            category = _dbContext.Categories.FirstOrDefault(x => x.UserId == UserContext.UserId && x.Id == request.CategoryId);
         }
 
         var transaction = new TransactionEntity
         {
             Account = account,
             Sum = request.Sum,
-            DateUtc = request.DateUtc.Date
+            Category = category,
+            DateUtc = request.DateUtc
         };
-        
-        await _dbContext.Transactions.AddAsync(transaction, cancellationToken);
 
+        await _dbContext.Transactions.AddAsync(transaction, cancellationToken);
         account.Balance += transaction.Sum;
         await _dbContext.SaveChangesAsync(cancellationToken);
-        
+
         return transaction.Id;
     }
 }

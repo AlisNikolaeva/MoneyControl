@@ -17,13 +17,17 @@ public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery
 
     public async Task<TransactionsModel> Handle(SearchTransactionsQuery request, CancellationToken cancellationToken)
     {
-        var query = _dbContext.Transactions.Where(x => request.AccountIds.Contains(x.Account.Id))
+        var query = _dbContext.Transactions
+            .Include(transactionEntity => transactionEntity.Account)
+            .Include(transactionEntity => transactionEntity.Category)
+            .Where(x => request.AccountIds.Contains(x.Account.Id))
             .Where(x => x.Account.UserId == UserContext.UserId);
+        
         if (request.StartUtc.HasValue)
         {
             query = query.Where(x => x.DateUtc >= request.StartUtc.Value);
         }
-        
+
         if (request.EndUtc.HasValue)
         {
             query = query.Where(x => x.DateUtc <= request.EndUtc.Value);
@@ -35,13 +39,15 @@ public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery
             .ThenBy(x => x.Account.Name)
             .Skip(request.Offset)
             .Take(request.Count);
-        
+
         var filteredTransactions = await query.Select(x => new TransactionModel
         {
+            Id = x.Id,
             AccountId = x.Account.Id,
             AccountName = x.Account.Name,
             DateUtc = x.DateUtc,
-            Id = x.Id,
+            CategoryId = x.Category == null ? 0 : x.Category.Id,
+            CategoryName = x.Category.Name,
             Sum = x.Sum
         }).ToListAsync(cancellationToken);
 

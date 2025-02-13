@@ -1,34 +1,21 @@
-@using MoneyControl.Client.Pages.Account.Models
+@using MoneyControl.Client.Pages.Category.Models
 @using MoneyControl.Client.Validation
 @using MoneyControl.Shared.Models
-@using MoneyControl.Shared.Queries.Account.CreateAccount
+@using MoneyControl.Shared.Queries.Category.CreateCategory
 @inject HttpClient Http
 
 <EditForm EditContext="@EditContext">
     <div class="mb-3">
-        <label for="name">Enter the account name:</label>
+        <label for="name">Enter the category name:</label>
         <input id="name"
                class="form-control"
-               placeholder="Account Name"
+               placeholder="Category Name"
                @onchange="@(x => Model.Name = x.Value?.ToString())">
         <ValidationMessage For="@(() => Model.Name)"/>
     </div>
 
-    <div class="mb-3">
-        <label for="currency">Select the account currency:</label>
-        <select id="currency"
-                class="form-select"
-                placeholder="Account Currency"
-                @onchange="@(x => Model.Currency = x.Value?.ToString())">
-            @foreach (var item in Currencies)
-            {
-                <option value="@item.Key">@item.Key</option>
-            }
-        </select>
-    </div>
-
     <div>
-        <button class="btn btn-primary" @onclick="@CreateAccountAsync">Add</button>
+        <button class="btn btn-primary" @onclick="@CreateCategoryAsync">Add</button>
     </div>
 </EditForm>
 
@@ -36,19 +23,17 @@
     private ValidationMessageStore _validationMessageStore = default!;
     private EditContext EditContext { get; set; } = default!;
     private List<ValidationRuleModel> ValidationRules { get; set; } = new();
-    private AddAccountModel Model { get; set; } = new();
-    private Dictionary<string, string> Currencies { get; set; } = new();
+    private AddCategoryModel Model { get; set; } = new();
     [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
         EditContext = new EditContext(new AccountModel());
         _validationMessageStore = new ValidationMessageStore(EditContext);
         SetValidationRules();
-        Currencies = await Http.GetFromJsonAsync<Dictionary<string, string>>("currencies.json") ?? new Dictionary<string, string>();
     }
 
-    private async Task CreateAccountAsync()
+    private async Task CreateCategoryAsync()
     {
         var result = ValidateContext();
         if (!result)
@@ -56,10 +41,9 @@
             return;
         }
 
-        await Http.PostAsJsonAsync("account/create", new CreateAccountCommand
+        await Http.PostAsJsonAsync("category/create", new CreateCategoryCommand
         {
-            Name = Model.Name!,
-            Currency = Model.Currency!
+            Name = Model.Name!
         });
 
         await BlazoredModal.CloseAsync();

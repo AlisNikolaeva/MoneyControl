@@ -4,6 +4,7 @@ public class TransactionEntity
 {
     public int Id { get; set; }
     public AccountEntity Account { get; set; }
+    public CategoryEntity? Category { get; set; }
     public double Sum { get; set; }
     public DateTime DateUtc { get; set; }
 }

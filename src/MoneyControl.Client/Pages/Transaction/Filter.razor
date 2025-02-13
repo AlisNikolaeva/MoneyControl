@@ -1,0 +1,87 @@
+@using MoneyControl.Client.Pages.Transaction.Models
+
+<div class="mb-3">
+    <span class="d-flex flex-wrap gap-2 pb-2">
+        <label>
+            <input type="checkbox" 
+                   class="form-check-input"
+                   checked="@(FilterParameters.SelectedAccounts.Count == FilterParameters.Accounts.Count)"
+                   @onchange="@SelectAllAccounts"> Select All Accounts
+        </label>
+        @foreach (var item in FilterParameters.Accounts)
+        {
+            <label>
+                <input type="checkbox" 
+                       class="form-check-input"
+                       checked="@FilterParameters.SelectedAccounts.Contains(item.Id)"
+                       @onchange="@(_ => ChangeAccountsFilter(item.Id))"> @item.Name
+            </label>
+        }
+    </span>
+
+    <div class="pt-3">
+        <label>Period:</label>
+        <span class="d-flex py-2 gap-2">
+            <input class="form-control"
+                   type="date"
+                   @bind="@FilterParameters.StartDate">
+            <input class="form-control"
+                   type="date"
+                   @bind="@FilterParameters.EndDate">
+        </span>
+    </div>
+
+    <span class="d-flex pt-3 gap-2">
+        <button @onclick="@ApplyFilterAsync" type="button" class="btn btn-primary">Apply</button>
+        <button @onclick="@ResetFilter" type="button" class="btn btn-secondary">Reset</button>
+    </span>
+</div>
+
+@code {
+    [Parameter] public FilterParametersModel FilterParameters { get; set; }
+    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+
+    private void SelectAllAccounts()
+    {
+        if (FilterParameters.SelectedAccounts.Count == FilterParameters.Accounts.Count)
+        {
+            FilterParameters.SelectedAccounts.Clear();
+        }
+        else
+        {
+            FilterParameters.SelectedAccounts.AddRange(FilterParameters.Accounts.Select(x => x.Id));
+        }
+    }
+
+    private void ChangeAccountsFilter(int accountId)
+    {
+        if (FilterParameters.SelectedAccounts.Contains(accountId))
+        {
+            FilterParameters.SelectedAccounts.Remove(accountId);
+        }
+        else
+        {
+            FilterParameters.SelectedAccounts.Add(accountId);
+        }
+    }
+
+    private async Task ApplyFilterAsync()
+    {
+        var result = new FilterParametersModel
+        {
+            StartDate = FilterParameters.StartDate,
+            EndDate = FilterParameters.EndDate
+        };
+
+        await BlazoredModal.CloseAsync(ModalResult.Ok(result));
+    }
+
+    private void ResetFilter()
+    {
+        FilterParameters.SelectedAccounts.Clear();
+        FilterParameters.SelectedAccounts.AddRange(FilterParameters.Accounts.Select(x => x.Id));
+        FilterParameters.StartDate = null;
+        FilterParameters.EndDate = null;
+    }
+
+}

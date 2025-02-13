@@ -6,9 +6,11 @@
 
 <EditForm EditContext="@EditContext">
     <div class="mb-3">
-        <label for="chooseAccount">Choose Account name:</label>
-        <select id="chooseAccount" @bind="@Model.AccountId" class="form-select">
-            <option value="0">Please select</option>
+        <label for="account">Select Account name:</label>
+        <select id="account"
+                class="form-select"
+                @bind="@Model.AccountId">
+            <option value="">Please select an account</option>
             @foreach (var item in _accounts)
             {
                 <option value="@item.Id">@item.Name</option>
@@ -19,8 +21,24 @@
 
     <div class="mb-3">
         <label for="sum">Enter the sum:</label>
-        <input id="sum" class="form-control" placeholder="Sum" @onchange="@(x => Model.Sum = Convert.ToDouble(x.Value))">
+        <input id="sum"
+               class="form-control"
+               placeholder="Sum"
+               @onchange="@(x => Model.Sum = Convert.ToDouble(x.Value))">
         <ValidationMessage For="@(() => Model.Sum)"/>
+    </div>
+
+    <div class="mb-3">
+        <label for="category">Select the category:</label>
+        <select id="category"
+                class="form-select"
+                @bind="@Model.CategoryId">
+            <option value="">Please select a category</option>
+            @foreach (var item in _categories)
+            {
+                <option value="@item.Id">@item.Name</option>
+            }
+        </select>
     </div>
 
     <div>
@@ -31,6 +49,7 @@
 @code {
     private ValidationMessageStore _validationMessageStore = default!;
     private List<AccountModel> _accounts = new();
+    private List<CategoryModel> _categories = new();
     private AddTransactionModel Model { get; set; } = new();
     private EditContext EditContext { get; set; } = default!;
     private List<ValidationRuleModel> ValidationRules { get; set; } = new();
@@ -42,6 +61,7 @@
         _validationMessageStore = new ValidationMessageStore(EditContext);
         SetValidationRules();
         _accounts = await Http.GetFromJsonAsync<List<AccountModel>?>("account") ?? new List<AccountModel>();
+        _categories = await Http.GetFromJsonAsync<List<CategoryModel>?>("category") ?? new List<CategoryModel>();
     }
 
     private async Task CreateTransactionAsync()
@@ -55,7 +75,8 @@
         await Http.PostAsJsonAsync("transaction/create", new CreateTransactionCommand
         {
             AccountId = Model.AccountId,
-            Sum = Model.Sum
+            Sum = Model.Sum,
+            CategoryId = Model.CategoryId
         });
 
         await BlazoredModal.CloseAsync();
@@ -89,4 +110,5 @@
             Message = "Sum must not be equal to 0"
         });
     }
+
 }

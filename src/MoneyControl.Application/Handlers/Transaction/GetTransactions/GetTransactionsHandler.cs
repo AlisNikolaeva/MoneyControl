@@ -14,15 +14,18 @@ public class GetTransactionsHandler : IRequestHandler<GetTransactionsCommand, IE
     {
         _dbContext = dbContext;
     }
-    
-    public async Task<IEnumerable<TransactionModel>> Handle(GetTransactionsCommand request, CancellationToken cancellationToken)
+
+    public async Task<IEnumerable<TransactionModel>> Handle(GetTransactionsCommand request,
+        CancellationToken cancellationToken)
     {
         var entities = await _dbContext.Transactions
             .Include(transactionEntity => transactionEntity.Account)
+            .Include(transactionEntity => transactionEntity.Category)
             .Where(x => x.Account.UserId == UserContext.UserId)
             .ToListAsync(cancellationToken);
-        var transactions = new List<TransactionModel>();
         
+        var transactions = new List<TransactionModel>();
+
         foreach (var item in entities)
         {
             transactions.Add(new TransactionModel
@@ -31,9 +34,12 @@ public class GetTransactionsHandler : IRequestHandler<GetTransactionsCommand, IE
                 AccountId = item.Account.Id,
                 AccountName = item.Account.Name,
                 Sum = item.Sum,
+                CategoryId = item.Category?.Id ?? 0,
+                CategoryName = item.Category?.Name,
                 DateUtc = item.DateUtc
             });
         }
+
         return transactions;
     }
 }
