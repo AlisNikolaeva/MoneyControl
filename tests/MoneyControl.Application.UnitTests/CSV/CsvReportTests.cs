@@ -2,17 +2,15 @@ using System.Collections;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
-using MoneyControl.Application.Handlers.Transaction.SearchTransactions;
+using MoneyControl.Application.CSV;
 using MoneyControl.Core.Entities;
 using MoneyControl.Infrastructure;
-using MoneyControl.Shared.Models;
-using MoneyControl.Shared.Queries.Transaction.SearchTransactions;
 using NUnit.Framework;
 using Testcontainers.MsSql;
 
-namespace MoneyControl.Application.UnitTests.Handlers.Transaction.SearchTransactions;
+namespace MoneyControl.Application.UnitTests.CSV;
 
-public class SearchTransactionsHandlerTests
+public class CsvReportTests
 {
     private MsSqlContainer _msSqlContainer;
     private Guid _userId = new("94B0D67A-77AB-49F8-B4DD-9009358CEB7A");
@@ -38,135 +36,139 @@ public class SearchTransactionsHandlerTests
                 "When StartUtc and EndUtc are null",
                 null,
                 null,
-                new TransactionsModel
+                new List<CsvData>
                 {
-                    Items = new List<TransactionModel>
+                    new()
                     {
-                        new()
-                        {
-                            Id = 1,
-                            AccountId = 1,
-                            AccountName = "Account_test1",
-                            Sum = 10,
-                            CategoryId = 1,
-                            CategoryName = "Category_test1",
-                            DateUtc = new DateTime(2001, 1, 1)
-                        },
-                        new()
-                        {
-                            Id = 2,
-                            AccountId = 2,
-                            AccountName = "Account_test2",
-                            Sum = 20,
-                            CategoryId = 2,
-                            CategoryName = "Category_test2",
-                            DateUtc = new DateTime(2002, 2, 2)
-                        },
-                        new()
-                        {
-                            Id = 3,
-                            AccountId = 3,
-                            AccountName = "Account_test3",
-                            Sum = 30,
-                            CategoryId = 3,
-                            CategoryName = "Category_test3",
-                            DateUtc = new DateTime(2003, 3, 3)
-                        }
+                        Id = 1,
+                        AccountId = 1,
+                        AccountName = "Account_test1",
+                        Sum = 10,
+                        Currency = "USD",
+                        Category = "Category_test1",
+                        DateUtc = new DateTime(2001, 1, 1).ToShortDateString()
                     },
-                    TotalCount = 3
+                    new()
+                    {
+                        Id = 2,
+                        AccountId = 2,
+                        AccountName = "Account_test2",
+                        Sum = 20,
+                        Currency = "CAD",
+                        Category = "Category_test2",
+                        DateUtc = new DateTime(2002, 2, 2).ToShortDateString()
+                    },
+                    new()
+                    {
+                        Id = 3,
+                        AccountId = 3,
+                        AccountName = "Account_test3",
+                        Sum = 30,
+                        Currency = "EUR",
+                        Category = "Category_test3",
+                        DateUtc = new DateTime(2003, 3, 3).ToShortDateString()
+                    },
+                    new()
+                    {
+                        Id = 4,
+                        AccountId = 4,
+                        AccountName = "Account_test4",
+                        Sum = 40,
+                        Currency = "AED",
+                        Category = "Category_test4",
+                        DateUtc = new DateTime(2004, 4, 4).ToShortDateString()
+                    }
                 });
 
             yield return new TestCaseData(
                 "When StartUtc is not null",
                 new DateTime(2002, 2, 2),
                 null,
-                new TransactionsModel
+                new List<CsvData>
                 {
-                    Items = new List<TransactionModel>
+                    new()
                     {
-                        new()
-                        {
-                            Id = 2,
-                            AccountId = 2,
-                            AccountName = "Account_test2",
-                            Sum = 20,
-                            CategoryId = 2,
-                            CategoryName = "Category_test2",
-                            DateUtc = new DateTime(2002, 2, 2)
-                        },
-                        new()
-                        {
-                            Id = 3,
-                            AccountId = 3,
-                            AccountName = "Account_test3",
-                            Sum = 30,
-                            CategoryId = 3,
-                            CategoryName = "Category_test3",
-                            DateUtc = new DateTime(2003, 3, 3)
-                        }
+                        Id = 2,
+                        AccountId = 2,
+                        AccountName = "Account_test2",
+                        Sum = 20,
+                        Currency = "CAD",
+                        Category = "Category_test2",
+                        DateUtc = new DateTime(2002, 2, 2).ToShortDateString()
                     },
-                    TotalCount = 2
+                    new()
+                    {
+                        Id = 3,
+                        AccountId = 3,
+                        AccountName = "Account_test3",
+                        Sum = 30,
+                        Currency = "EUR",
+                        Category = "Category_test3",
+                        DateUtc = new DateTime(2003, 3, 3).ToShortDateString()
+                    },
+                    new()
+                    {
+                        Id = 4,
+                        AccountId = 4,
+                        AccountName = "Account_test4",
+                        Sum = 40,
+                        Currency = "AED",
+                        Category = "Category_test4",
+                        DateUtc = new DateTime(2004, 4, 4).ToShortDateString()
+                    }
                 });
 
             yield return new TestCaseData(
                 "When EndUtc is not null",
                 null,
                 new DateTime(2002, 2, 2),
-                new TransactionsModel
+                new List<CsvData>
                 {
-                    Items = new List<TransactionModel>
+                    new()
                     {
-                        new()
-                        {
-                            Id = 1,
-                            AccountId = 1,
-                            AccountName = "Account_test1",
-                            Sum = 10,
-                            CategoryId = 1,
-                            CategoryName = "Category_test1",
-                            DateUtc = new DateTime(2001, 1, 1)
-                        },
-                        new()
-                        {
-                            Id = 2,
-                            AccountId = 2,
-                            AccountName = "Account_test2",
-                            Sum = 20,
-                            CategoryId = 2,
-                            CategoryName = "Category_test2",
-                            DateUtc = new DateTime(2002, 2, 2)
-                        }
+                        Id = 1,
+                        AccountId = 1,
+                        AccountName = "Account_test1",
+                        Sum = 10,
+                        Currency = "USD",
+                        Category = "Category_test1",
+                        DateUtc = new DateTime(2001, 1, 1).ToShortDateString()
                     },
-                    TotalCount = 2
+                    new()
+                    {
+                        Id = 2,
+                        AccountId = 2,
+                        AccountName = "Account_test2",
+                        Sum = 20,
+                        Currency = "CAD",
+                        Category = "Category_test2",
+                        DateUtc = new DateTime(2002, 2, 2).ToShortDateString()
+                    }
                 });
 
             yield return new TestCaseData(
                 "When StartUtc and EndUtc are not null",
                 new DateTime(2002, 2, 2),
                 new DateTime(2002, 2, 2),
-                new TransactionsModel
+                new List<CsvData>
                 {
-                    Items = new List<TransactionModel>
+                    new()
                     {
-                        new()
-                        {
-                            Id = 2,
-                            AccountId = 2,
-                            AccountName = "Account_test2",
-                            Sum = 20,
-                            CategoryId = 2,
-                            CategoryName = "Category_test2",
-                            DateUtc = new DateTime(2002, 2, 2)
-                        }
-                    },
-                    TotalCount = 1
+                        Id = 2,
+                        AccountId = 2,
+                        AccountName = "Account_test2",
+                        Sum = 20,
+                        Currency = "CAD",
+                        Category = "Category_test2",
+                        DateUtc = new DateTime(2002, 2, 2).ToShortDateString()
+                    }
                 });
         }
     }
 
     [TestCaseSource(nameof(GetPeriodTransactionTestCases))]
     public async Task Handle_WhenSuccess_ShouldReturnSomeTransactions(string caseName, DateTime? start, DateTime? end,
-        TransactionsModel expected)
+        List<CsvData> expected)
     {
         // Arrange
         var applicationOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -282,16 +284,18 @@ public class SearchTransactionsHandlerTests
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         UserContext.SetUserContext(_userId);
-        var request = new SearchTransactionsQuery
+
+        var parameters = new CsvParameters
         {
-            AccountIds = new List<int> { 1, 2, 3 },
+            AccountIds = new List<int> { 1, 2, 3, 4 },
             StartUtc = start,
             EndUtc = end
         };
-        var handler = new SearchTransactionsHandler(dbContext);
+
+        var csvReport = new CsvReport(dbContext);
 
         // Act
-        var result = await handler.Handle(request, CancellationToken.None);
+        var result = await csvReport.GetFilteredTransactions(parameters, CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);

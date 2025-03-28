@@ -19,9 +19,8 @@ public class CreateTransactionHandler : IRequestHandler<CreateTransactionCommand
 
     public async Task<int> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
     {
-        var account = await _dbContext.Accounts.FirstOrDefaultAsync(
-            x => x.Id == request.AccountId && x.UserId == UserContext.UserId,
-            cancellationToken);
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(x => x.UserId == UserContext.UserId
+                                                                         && x.Id == request.AccountId, cancellationToken);
 
         if (account == null)
         {

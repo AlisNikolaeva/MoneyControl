@@ -14,7 +14,8 @@ namespace MoneyControl.Application.UnitTests.Handlers.Transaction.CreateTransact
 public class CreateTransactionHandlerTests
 {
     private MsSqlContainer _msSqlContainer;
-    
+    private Guid _userId = new("94B0D67A-77AB-49F8-B4DD-9009358CEB7A");
+
     [SetUp]
     public async Task SetUpAsync()
     {
@@ -46,16 +47,26 @@ public class CreateTransactionHandlerTests
         await dbContext.Database.EnsureCreatedAsync();
         await dbContext.Accounts.AddAsync(new AccountEntity
         {
+            UserId = _userId,
             Name = "Account_test",
             Balance = 0,
             Currency = "USD"
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
-        
+
+        await dbContext.Categories.AddAsync(new CategoryEntity
+        {
+            UserId = _userId,
+            Name = "Category_test"
+        });
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        UserContext.SetUserContext(_userId);
         var request = new CreateTransactionCommand
         {
             AccountId = 1,
             Sum = 10,
+            CategoryId = 1,
             DateUtc = DateTime.Now
         };
         var handler = new CreateTransactionHandler(dbContext);
@@ -67,7 +78,7 @@ public class CreateTransactionHandlerTests
         result.Should().NotBe(0);
         await dbContext.DisposeAsync();
     }
-    
+
     [Test]
     public async Task Handle_WhenNoAccount_ShouldThrowException()
     {
@@ -84,18 +95,27 @@ public class CreateTransactionHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-        
+
+        await dbContext.Categories.AddAsync(new CategoryEntity
+        {
+            UserId = _userId,
+            Name = "Category_test"
+        });
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        UserContext.SetUserContext(_userId);
         var request = new CreateTransactionCommand
         {
             AccountId = 1,
             Sum = 10,
+            CategoryId = 1,
             DateUtc = DateTime.Now
         };
         var handler = new CreateTransactionHandler(dbContext);
-    
+
         // Act
         async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);
-    
+
         // Assert
         Assert.ThrowsAsync<ValidationException>(TestDelegate);
         await dbContext.DisposeAsync();

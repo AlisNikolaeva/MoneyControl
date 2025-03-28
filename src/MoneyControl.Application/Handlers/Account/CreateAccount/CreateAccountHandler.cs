@@ -19,7 +19,8 @@ public class CreateAccountHandler : IRequestHandler<CreateAccountCommand, int>
     
     public async Task<int> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
-        var exist = await _dbContext.Accounts.AnyAsync(x => x.Name == request.Name, cancellationToken);
+        var exist = await _dbContext.Accounts.AnyAsync(x => x.UserId == UserContext.UserId
+                                                            && x.Name == request.Name, cancellationToken);
         if (exist)
         {
             throw new ValidationException("This account name already exists.", 

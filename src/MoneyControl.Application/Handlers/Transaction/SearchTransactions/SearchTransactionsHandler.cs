@@ -22,15 +22,17 @@ public class SearchTransactionsHandler : IRequestHandler<SearchTransactionsQuery
             .Include(transactionEntity => transactionEntity.Category)
             .Where(x => request.AccountIds.Contains(x.Account.Id))
             .Where(x => x.Account.UserId == UserContext.UserId);
-        
+
         if (request.StartUtc.HasValue)
         {
-            query = query.Where(x => x.DateUtc >= request.StartUtc.Value);
+            var startUtc = request.StartUtc.Value.Date;
+            query = query.Where(x => x.DateUtc >= startUtc);
         }
 
         if (request.EndUtc.HasValue)
         {
-            query = query.Where(x => x.DateUtc <= request.EndUtc.Value);
+            var endUtc = request.EndUtc.Value.Date.AddDays(1).AddSeconds(-1);
+            query = query.Where(x => x.DateUtc <= endUtc);
         }
 
         var totalCount = await query.CountAsync(cancellationToken);

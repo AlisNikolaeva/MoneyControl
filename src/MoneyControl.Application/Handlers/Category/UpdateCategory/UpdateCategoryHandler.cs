@@ -28,8 +28,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand>
                 [new ValidationFailure("Id", "Category doesn't exist")]);
         }
 
-        var exist = categories.Any(x => string.Equals(x.Name, request.Name, StringComparison.InvariantCultureIgnoreCase)
-                                        && x.Id != request.Id);
+        var exist = categories.Any(x => x.Name == request.Name);
         if (exist)
         {
             throw new ValidationException("This category name already exists.",

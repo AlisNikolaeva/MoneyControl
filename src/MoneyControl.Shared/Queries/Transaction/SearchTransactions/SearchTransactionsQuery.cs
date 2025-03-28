@@ -8,6 +8,6 @@ public class SearchTransactionsQuery : IRequest<TransactionsModel>
     public List<int> AccountIds { get; set; } = new();
     public DateTime? StartUtc { get; set; }
     public DateTime? EndUtc { get; set; }
-    public int Count { get; set; }
+    public int Count { get; set; } = 20;
     public int Offset { get; set; }
 }

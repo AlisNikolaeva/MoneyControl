@@ -23,6 +23,12 @@
     </ItemGroup>
 
     <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>MoneyControl.Application.UnitTests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\MoneyControl.Infrastructure\MoneyControl.Infrastructure.csproj" />
       <ProjectReference Include="..\MoneyControl.Shared\MoneyControl.Shared.csproj" />
     </ItemGroup>

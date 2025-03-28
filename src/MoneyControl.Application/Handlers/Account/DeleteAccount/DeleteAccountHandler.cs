@@ -17,7 +17,7 @@ public class DeleteAccountHandler : IRequestHandler<DeleteAccountCommand>
     
     public async Task Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
     {
-        var account = _dbContext.Accounts.FirstOrDefault(x => x.Id == request.Id && x.UserId == UserContext.UserId);
+        var account = _dbContext.Accounts.FirstOrDefault(x => x.UserId == UserContext.UserId && x.Id == request.Id);
         if (account == null)
         {
             throw new ValidationException("Account doesn't exist", [new ValidationFailure("Name", "Account doesn't exist")]);

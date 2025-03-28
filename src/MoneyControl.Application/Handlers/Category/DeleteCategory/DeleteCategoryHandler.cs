@@ -17,7 +17,7 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand>
 
     public async Task Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
-        var category = _dbContext.Categories.FirstOrDefault(x => x.Id == request.Id && x.UserId == UserContext.UserId);
+        var category = _dbContext.Categories.FirstOrDefault(x => x.UserId == UserContext.UserId && x.Id == request.Id);
         if (category == null)
         {
             throw new ValidationException("Category doesn't exist",

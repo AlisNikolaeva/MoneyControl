@@ -2,16 +2,16 @@ using FluentAssertions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
-using MoneyControl.Application.Handlers.Transaction.DeleteTransaction;
-using MoneyControl.Core.Entities;
+using MoneyControl.Application.Handlers.Category.UpdateCategory;
 using MoneyControl.Infrastructure;
-using MoneyControl.Shared.Queries.Transaction.DeleteTransaction;
+using MoneyControl.Shared.Models;
+using MoneyControl.Shared.Queries.Category.UpdateCategory;
 using NUnit.Framework;
 using Testcontainers.MsSql;
 
-namespace MoneyControl.Application.UnitTests.Handlers.Transaction.DeleteTransaction;
+namespace MoneyControl.Application.UnitTests.Handlers.Category.UpdateCategory;
 
-public class DeleteTransactionHandlerTests
+public class UpdateCategoryHandlerTests
 {
     private MsSqlContainer _msSqlContainer;
     private Guid _userId = new("94B0D67A-77AB-49F8-B4DD-9009358CEB7A");
@@ -30,7 +30,7 @@ public class DeleteTransactionHandlerTests
     }
 
     [Test]
-    public async Task Handle_WhenSuccess_ShouldRemove()
+    public async Task Handle_WhenSuccess_ShouldUpdate()
     {
         // Arrange
         var applicationOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -45,47 +45,32 @@ public class DeleteTransactionHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
-
-        var account = new AccountEntity
+        await dbContext.Categories.AddAsync(new()
         {
             UserId = _userId,
-            Name = "Account_test",
-            Balance = 0,
-            Currency = "USD"
-        };
-        await dbContext.Accounts.AddAsync(account);
-        await dbContext.SaveChangesAsync(CancellationToken.None);
-
-        var category = new CategoryEntity
-        {
-            UserId = _userId,
-            Name = "Category_test"
-        };
-        await dbContext.Categories.AddAsync(category);
-        await dbContext.SaveChangesAsync(CancellationToken.None);
-
-        await dbContext.Transactions.AddAsync(new TransactionEntity
-        {
-            Account = account,
-            Category = category,
-            Sum = 10,
-            DateUtc = DateTime.Now
+            Name = "Category_test1"
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         UserContext.SetUserContext(_userId);
-        var request = new DeleteTransactionQuery
+        var request = new UpdateCategoryCommand
         {
-            Id = 1
+            Id = 1,
+            Name = "Category_test2"
         };
-        var handler = new DeleteTransactionHandler(dbContext);
+        var handler = new UpdateCategoryHandler(dbContext);
 
         // Act
         await handler.Handle(request, CancellationToken.None);
 
         // Assert
-        var count = await dbContext.Transactions.CountAsync();
-        count.Should().Be(0);
+        var expected = new CategoryModel
+        {
+            Id = 1,
+            Name = "Category_test2"
+        };
+        var category = await dbContext.Categories.FirstOrDefaultAsync(x => x.Id == 1);
+        category.Should().BeEquivalentTo(expected);
         await dbContext.DisposeAsync();
     }
 
@@ -107,11 +92,51 @@ public class DeleteTransactionHandlerTests
         await dbContext.Database.EnsureCreatedAsync();
 
         UserContext.SetUserContext(_userId);
-        var request = new DeleteTransactionQuery
+        var request = new UpdateCategoryCommand
         {
-            Id = 1
+            Id = 2,
+            Name = "Category_test2"
         };
-        var handler = new DeleteTransactionHandler(dbContext);
+        var handler = new UpdateCategoryHandler(dbContext);
+
+        // Act
+        async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);
+
+        // Assert
+        Assert.ThrowsAsync<ValidationException>(TestDelegate);
+        await dbContext.DisposeAsync();
+    }
+
+    [Test]
+    public async Task Handle_WhenNameExists_ShouldThrowException()
+    {
+        // Arrange
+        var applicationOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlServer(_msSqlContainer.GetConnectionString(),
+                b =>
+                {
+                    b.EnableRetryOnFailure(3);
+                    b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                    b.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "dbo");
+                    b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                })
+            .Options;
+        var dbContext = new ApplicationDbContext(applicationOptions);
+        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Categories.AddAsync(new()
+        {
+            UserId = _userId,
+            Name = "Category_test"
+        });
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        UserContext.SetUserContext(_userId);
+        var request = new UpdateCategoryCommand
+        {
+            Id = 1,
+            Name = "Category_test"
+        };
+        var handler = new UpdateCategoryHandler(dbContext);
 
         // Act
         async Task TestDelegate() => await handler.Handle(request, CancellationToken.None);

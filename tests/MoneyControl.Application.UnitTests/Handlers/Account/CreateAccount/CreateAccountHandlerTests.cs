@@ -14,7 +14,8 @@ namespace MoneyControl.Application.UnitTests.Handlers.Account.CreateAccount;
 public class CreateAccountHandlerTests
 {
     private MsSqlContainer _msSqlContainer;
-    
+    private Guid _userId = new("94B0D67A-77AB-49F8-B4DD-9009358CEB7A");
+
     [SetUp]
     public async Task SetUpAsync()
     {
@@ -44,6 +45,8 @@ public class CreateAccountHandlerTests
             .Options;
         var dbContext = new ApplicationDbContext(applicationOptions);
         await dbContext.Database.EnsureCreatedAsync();
+        
+        UserContext.SetUserContext(_userId);
         var request = new CreateAccountCommand
         {
             Name = "Account_test",
@@ -58,7 +61,7 @@ public class CreateAccountHandlerTests
         result.Should().NotBe(0);
         await dbContext.DisposeAsync();
     }
-    
+
     [Test]
     public async Task Handle_WhenExists_ShouldThrowException()
     {
@@ -77,12 +80,14 @@ public class CreateAccountHandlerTests
         await dbContext.Database.EnsureCreatedAsync();
         await dbContext.Accounts.AddAsync(new AccountEntity
         {
+            UserId = _userId,
             Name = "Account_test",
             Balance = 0,
             Currency = "USD"
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
-        
+
+        UserContext.SetUserContext(_userId);
         var request = new CreateAccountCommand
         {
             Name = "Account_test",

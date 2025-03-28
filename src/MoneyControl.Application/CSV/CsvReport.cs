@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using CsvHelper;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +15,22 @@ public class CsvReport
         _dbContext = dbContext;
     }
 
+    [ExcludeFromCodeCoverage]
     public async Task<byte[]> CreateCsvReportAsync(CsvParameters parameters, CancellationToken cancellationToken)
+    {
+        var filteredTransactions = await GetFilteredTransactions(parameters, cancellationToken);
+
+        using var memoryStream = new MemoryStream();
+        await using (var streamWriter = new StreamWriter(memoryStream))
+        await using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
+        {
+            await csvWriter.WriteRecordsAsync(filteredTransactions, cancellationToken);
+        }
+
+        return memoryStream.ToArray();
+    }
+
+    internal async Task<List<CsvData>> GetFilteredTransactions(CsvParameters parameters, CancellationToken cancellationToken)
     {
         var query = _dbContext.Transactions
             .Where(x => parameters.AccountIds.Contains(x.Account.Id));
@@ -42,14 +58,7 @@ public class CsvReport
             Category = x.Category.Name,
             DateUtc = x.DateUtc.ToShortDateString()
         }).ToListAsync(cancellationToken);
-
-        using var memoryStream = new MemoryStream();
-        await using (var streamWriter = new StreamWriter(memoryStream))
-        await using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
-        {
-            await csvWriter.WriteRecordsAsync(filteredTransactions, cancellationToken);
-        }
-
-        return memoryStream.ToArray();
+        
+        return filteredTransactions;
     }
 }

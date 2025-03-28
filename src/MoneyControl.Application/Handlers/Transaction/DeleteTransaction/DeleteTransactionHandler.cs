@@ -20,7 +20,7 @@ public class DeleteTransactionHandler : IRequestHandler<DeleteTransactionQuery>
     {
         var transaction = await _dbContext.Transactions
             .Include(transactionEntity => transactionEntity.Account)
-            .FirstOrDefaultAsync(x => x.Id == request.Id && x.Account.UserId == UserContext.UserId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Account.UserId == UserContext.UserId && x.Id == request.Id, cancellationToken);
         
         if (transaction == null)
         {
