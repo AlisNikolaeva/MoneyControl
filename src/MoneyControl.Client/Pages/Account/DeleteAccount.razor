@@ -2,8 +2,8 @@
 
 <p>Are you sure? This operation cannot be undone. Would you like to proceed?</p>
 <span class="d-flex gap-2">
-    <button class="btn btn-danger" @onclick="@YesAsync">Delete</button>
-    <button class="btn btn-primary" @onclick="@NoAsync">No</button>
+    <button class="btn btn-danger" @onclick="@YesAsync">Delete Account</button>
+    <button class="btn btn-primary" @onclick="@NoAsync">Cancel</button>
 </span>
 
 @code {
@@ -13,12 +13,13 @@
     private async Task YesAsync()
     {
         await Http.DeleteAsync($"account?id={Id}", CancellationToken.None);
-        
+
         await BlazoredModal.CloseAsync();
     }
-    
+
     private async Task NoAsync()
     {
         await BlazoredModal.CloseAsync();
     }
+
 }

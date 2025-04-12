@@ -25,6 +25,16 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand>
         }
 
         _dbContext.Categories.Remove(category);
+
+        var transactions = _dbContext.Transactions.Where(x => x.Category.Id == request.Id);
+        if (transactions.Any())
+        {
+            foreach (var item in transactions)
+            {
+                item.Category = null;
+            }
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

@@ -15,7 +15,7 @@ public class CreateCategoryHandlerTests
 {
     private MsSqlContainer _msSqlContainer;
     private Guid _userId = new("94B0D67A-77AB-49F8-B4DD-9009358CEB7A");
-    
+
     [SetUp]
     public async Task SetUpAsync()
     {
@@ -48,7 +48,7 @@ public class CreateCategoryHandlerTests
         UserContext.SetUserContext(_userId);
         var request = new CreateCategoryCommand
         {
-            Name = "Category_test",
+            Name = "Category_test"
         };
         var handler = new CreateCategoryHandler(dbContext);
 
@@ -59,7 +59,7 @@ public class CreateCategoryHandlerTests
         result.Should().NotBe(0);
         await dbContext.DisposeAsync();
     }
-    
+
     [Test]
     public async Task Handle_WhenExists_ShouldThrowException()
     {
@@ -82,7 +82,7 @@ public class CreateCategoryHandlerTests
             Name = "Category_test"
         });
         await dbContext.SaveChangesAsync(CancellationToken.None);
-        
+
         UserContext.SetUserContext(_userId);
         var request = new CreateCategoryCommand
         {

@@ -16,23 +16,24 @@ public class CreateAccountHandler : IRequestHandler<CreateAccountCommand, int>
     {
         _dbContext = dbContext;
     }
-    
+
     public async Task<int> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
         var exist = await _dbContext.Accounts.AnyAsync(x => x.UserId == UserContext.UserId
                                                             && x.Name == request.Name, cancellationToken);
         if (exist)
         {
-            throw new ValidationException("This account name already exists.", 
+            throw new ValidationException("This account name already exists.",
                 [new ValidationFailure("Name", "This account name already exists.")]);
         }
-        
+
         var account = new AccountEntity
         {
             Balance = 0,
             Currency = request.Currency,
             Name = request.Name,
-            UserId = UserContext.UserId
+            UserId = UserContext.UserId,
+            CreatedUtc = request.CreatedUtc
         };
 
         await _dbContext.Accounts.AddAsync(account, cancellationToken);

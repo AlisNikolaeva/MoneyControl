@@ -19,6 +19,7 @@ public class GetCategoriesHandler : IRequestHandler<GetCategoriesCommand, IEnume
         CancellationToken cancellationToken)
     {
         var categories = await _dbContext.Categories.Where(x => x.UserId == UserContext.UserId)
+            .OrderBy(x => x.Name)
             .Select(x => new CategoryModel
             {
                 Id = x.Id,

@@ -1,9 +1,9 @@
 @using MoneyControl.Client.Pages.Transaction.Models
 
-<div class="mb-3">
-    <span class="d-flex flex-wrap gap-2 pb-2">
+<div>
+    <div class="account-filter">
         <label>
-            <input type="checkbox" 
+            <input type="checkbox"
                    class="form-check-input"
                    checked="@(FilterParameters.SelectedAccounts.Count == FilterParameters.Accounts.Count)"
                    @onchange="@SelectAllAccounts"> Select All Accounts
@@ -11,16 +11,16 @@
         @foreach (var item in FilterParameters.Accounts)
         {
             <label>
-                <input type="checkbox" 
+                <input type="checkbox"
                        class="form-check-input"
                        checked="@FilterParameters.SelectedAccounts.Contains(item.Id)"
                        @onchange="@(_ => ChangeAccountsFilter(item.Id))"> @item.Name
             </label>
         }
-    </span>
+    </div>
 
-    <div class="pt-3">
-        <label>Period:</label>
+    <div class="mt-4">
+        <label class="fw-bold">Period:</label>
         <span class="d-flex py-2 gap-2">
             <input class="form-control"
                    type="date"

@@ -14,23 +14,21 @@ public class GetAccountsHandler : IRequestHandler<GetAccountsCommand, IEnumerabl
     {
         _dbContext = dbContext;
     }
-    
+
     public async Task<IEnumerable<AccountModel>> Handle(GetAccountsCommand request, CancellationToken cancellationToken)
     {
-        var entities = await _dbContext.Accounts.Where(x => x.UserId == UserContext.UserId)
-            .ToListAsync(cancellationToken);
-        var accounts = new List<AccountModel>();
-        foreach (var item in entities)
-        {
-            accounts.Add(new AccountModel
+        var accounts = await _dbContext.Accounts.Where(x => x.UserId == UserContext.UserId)
+            .OrderByDescending(x => x.CreatedUtc)
+            .Select(x => new AccountModel
             {
-                Id = item.Id,
-                Balance = item.Balance,
-                Currency = item.Currency,
-                Name = item.Name
-            });
-        }
-        
+                Id = x.Id,
+                Balance = x.Balance,
+                Currency = x.Currency,
+                Name = x.Name,
+                CreatedUtc = x.CreatedUtc
+            })
+            .ToListAsync(cancellationToken);
+
         return accounts;
     }
 }

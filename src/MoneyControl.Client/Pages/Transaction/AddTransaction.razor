@@ -3,42 +3,58 @@
 @using MoneyControl.Shared.Models
 @using MoneyControl.Shared.Queries.Transaction.CreateTransaction
 @inject HttpClient Http
+@implements IDisposable
 
 <EditForm EditContext="@EditContext">
     <div class="mb-3">
-        <label for="account">Select Account name:</label>
-        <select id="account"
-                class="form-select"
-                @bind="@Model.AccountId">
+        <label for="account">Select the account:</label>
+        <InputSelect id="account"
+                     class="form-select"
+                     @bind-Value="@Model.AccountId">
             <option value="">Please select an account</option>
             @foreach (var item in _accounts)
             {
                 <option value="@item.Id">@item.Name</option>
             }
-        </select>
+        </InputSelect>
         <ValidationMessage For="@(() => Model.AccountId)"/>
     </div>
 
     <div class="mb-3">
         <label for="sum">Enter the sum:</label>
-        <input id="sum"
-               class="form-control"
-               placeholder="Sum"
-               @onchange="@(x => Model.Sum = Convert.ToDouble(x.Value))">
+        <InputNumber id="sum"
+                     class="form-control"
+                     placeholder="Sum"
+                     @bind-Value="Model.Sum">
+        </InputNumber>
         <ValidationMessage For="@(() => Model.Sum)"/>
     </div>
 
     <div class="mb-3">
-        <label for="category">Select the category:</label>
-        <select id="category"
-                class="form-select"
-                @bind="@Model.CategoryId">
-            <option value="">Please select a category</option>
-            @foreach (var item in _categories)
-            {
-                <option value="@item.Id">@item.Name</option>
-            }
-        </select>
+        <label for="category">Select the category (optional):</label>
+        @if (_categories.Any())
+        {
+            <InputSelect id="category"
+                         class="form-select"
+                         @bind-Value="@Model.CategoryId">
+                <option value="">— No category —</option>
+                @foreach (var item in _categories)
+                {
+                    <option value="@item.Id">@item.Name</option>
+                }
+            </InputSelect>
+        }
+        else
+        {
+            <select id="category"
+                    class="form-select"
+                    disabled>
+                <option>— No categories available —</option>
+            </select>
+            <p class="createcategory">
+                You can create one <a href="/categories">here</a>.
+            </p>
+        }
     </div>
 
     <div>
@@ -60,8 +76,28 @@
         EditContext = new EditContext(Model);
         _validationMessageStore = new ValidationMessageStore(EditContext);
         SetValidationRules();
+        EditContext.OnFieldChanged += EditContextOnOnFieldChanged;
+
         _accounts = await Http.GetFromJsonAsync<List<AccountModel>?>("account") ?? new List<AccountModel>();
         _categories = await Http.GetFromJsonAsync<List<CategoryModel>?>("category") ?? new List<CategoryModel>();
+    }
+
+    public void Dispose()
+    {
+        EditContext.OnFieldChanged -= EditContextOnOnFieldChanged;
+    }
+
+    private void EditContextOnOnFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        _validationMessageStore.Clear(e.FieldIdentifier);
+        var rule = ValidationRules.FirstOrDefault(v => v.Accessor == e.FieldIdentifier.Model);
+
+        if (rule is not null && !rule.Satisfy())
+        {
+            _validationMessageStore.Add(rule.Accessor, rule.Message);
+        }
+
+        StateHasChanged();
     }
 
     private async Task CreateTransactionAsync()
@@ -75,7 +111,7 @@
         await Http.PostAsJsonAsync("transaction/create", new CreateTransactionCommand
         {
             AccountId = Model.AccountId,
-            Sum = Model.Sum,
+            Sum = Model.Sum!.Value,
             CategoryId = Model.CategoryId
         });
 
@@ -105,7 +141,7 @@
         });
         ValidationRules.Add(new ValidationRuleModel
         {
-            Satisfy = () => Model.Sum != 0,
+            Satisfy = () => Model.Sum.HasValue && Model.Sum != 0,
             Accessor = () => Model.Sum,
             Message = "Sum must not be equal to 0"
         });

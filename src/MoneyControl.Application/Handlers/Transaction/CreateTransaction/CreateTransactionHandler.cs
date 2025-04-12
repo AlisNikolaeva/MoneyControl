@@ -20,7 +20,8 @@ public class CreateTransactionHandler : IRequestHandler<CreateTransactionCommand
     public async Task<int> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
     {
         var account = await _dbContext.Accounts.FirstOrDefaultAsync(x => x.UserId == UserContext.UserId
-                                                                         && x.Id == request.AccountId, cancellationToken);
+                                                                         && x.Id == request.AccountId,
+            cancellationToken);
 
         if (account == null)
         {
@@ -32,6 +33,11 @@ public class CreateTransactionHandler : IRequestHandler<CreateTransactionCommand
         if (request.CategoryId != 0)
         {
             category = _dbContext.Categories.FirstOrDefault(x => x.UserId == UserContext.UserId && x.Id == request.CategoryId);
+            if (category == null)
+            {
+                throw new ValidationException("Category doesn't exist.",
+                    [new ValidationFailure("CategoryId", "Category doesn't exist.")]);
+            }
         }
 
         var transaction = new TransactionEntity

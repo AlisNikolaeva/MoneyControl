@@ -3,14 +3,16 @@
 @using MoneyControl.Shared.Models
 @using MoneyControl.Shared.Queries.Category.CreateCategory
 @inject HttpClient Http
+@implements IDisposable
 
 <EditForm EditContext="@EditContext">
     <div class="mb-3">
         <label for="name">Enter the category name:</label>
-        <input id="name"
-               class="form-control"
-               placeholder="Category Name"
-               @onchange="@(x => Model.Name = x.Value?.ToString())">
+        <InputText id="name"
+                   class="form-control"
+                   placeholder="Category Name"
+                   @bind-Value="@Model.Name">
+        </InputText>
         <ValidationMessage For="@(() => Model.Name)"/>
     </div>
 
@@ -31,6 +33,25 @@
         EditContext = new EditContext(new AccountModel());
         _validationMessageStore = new ValidationMessageStore(EditContext);
         SetValidationRules();
+        EditContext.OnFieldChanged += EditContextOnOnFieldChanged;
+    }
+
+    public void Dispose()
+    {
+        EditContext.OnFieldChanged -= EditContextOnOnFieldChanged;
+    }
+
+    private void EditContextOnOnFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        _validationMessageStore.Clear(e.FieldIdentifier);
+        var rule = ValidationRules.FirstOrDefault(v => v.Accessor == e.FieldIdentifier.Model);
+
+        if (rule is not null && !rule.Satisfy())
+        {
+            _validationMessageStore.Add(rule.Accessor, rule.Message);
+        }
+
+        StateHasChanged();
     }
 
     private async Task CreateCategoryAsync()

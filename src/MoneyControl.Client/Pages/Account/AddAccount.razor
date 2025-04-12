@@ -3,28 +3,30 @@
 @using MoneyControl.Shared.Models
 @using MoneyControl.Shared.Queries.Account.CreateAccount
 @inject HttpClient Http
+@implements IDisposable
 
 <EditForm EditContext="@EditContext">
     <div class="mb-3">
         <label for="name">Enter the account name:</label>
-        <input id="name"
-               class="form-control"
-               placeholder="Account Name"
-               @onchange="@(x => Model.Name = x.Value?.ToString())">
+        <InputText id="name"
+                   class="form-control"
+                   placeholder="Account Name"
+                   @bind-Value="@Model.Name">
+        </InputText>
         <ValidationMessage For="@(() => Model.Name)"/>
     </div>
 
     <div class="mb-3">
         <label for="currency">Select the account currency:</label>
-        <select id="currency"
-                class="form-select"
-                placeholder="Account Currency"
-                @onchange="@(x => Model.Currency = x.Value?.ToString())">
+        <InputSelect id="currency"
+                     class="form-select"
+                     placeholder="Account Currency"
+                     @bind-Value="@Model.Currency">
             @foreach (var item in Currencies)
             {
                 <option value="@item.Key">@item.Key</option>
             }
-        </select>
+        </InputSelect>
     </div>
 
     <div>
@@ -45,7 +47,27 @@
         EditContext = new EditContext(new AccountModel());
         _validationMessageStore = new ValidationMessageStore(EditContext);
         SetValidationRules();
+        EditContext.OnFieldChanged += EditContextOnOnFieldChanged;
+
         Currencies = await Http.GetFromJsonAsync<Dictionary<string, string>>("currencies.json") ?? new Dictionary<string, string>();
+    }
+
+    public void Dispose()
+    {
+        EditContext.OnFieldChanged -= EditContextOnOnFieldChanged;
+    }
+
+    private void EditContextOnOnFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        _validationMessageStore.Clear(e.FieldIdentifier);
+        var rule = ValidationRules.FirstOrDefault(v => v.Accessor == e.FieldIdentifier.Model);
+
+        if (rule is not null && !rule.Satisfy())
+        {
+            _validationMessageStore.Add(rule.Accessor, rule.Message);
+        }
+
+        StateHasChanged();
     }
 
     private async Task CreateAccountAsync()

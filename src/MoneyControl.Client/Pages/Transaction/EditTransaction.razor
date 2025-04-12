@@ -2,49 +2,65 @@
 @using MoneyControl.Shared.Models
 @using MoneyControl.Shared.Queries.Transaction.UpdateTransaction
 @inject HttpClient Http
+@implements IDisposable
 
 <EditForm EditContext="@EditContext">
     <div class="mb-3">
         <label for="account">Select the account:</label>
-        <select id="account"
-                class="form-select"
-                @bind="@Transaction.AccountId">
+        <InputSelect id="account"
+                     class="form-select"
+                     @bind-Value="@Transaction.AccountId">
             @foreach (var item in _accounts)
             {
                 <option value="@item.Id">@item.Name</option>
             }
-        </select>
+        </InputSelect>
     </div>
 
     <div class="mb-3">
         <label for="sum">Enter the sum:</label>
-        <input id="sum"
-               class="form-control"
-               placeholder="Sum"
-               @bind="@Transaction.Sum">
+        <InputNumber id="sum"
+                     class="form-control"
+                     placeholder="Sum"
+                     @bind-Value="Transaction.Sum">
+        </InputNumber>
         <ValidationMessage For="@(() => Transaction.Sum)"/>
     </div>
 
     <div class="mb-3">
-        <label for="category">Select the category:</label>
-        <select id="category"
-                class="form-select"
-                @bind="@Transaction.CategoryId">
-            <option value="">Please select a category</option>
-            @foreach (var item in _categories)
-            {
-                <option value="@item.Id">@item.Name</option>
-            }
-        </select>
+        <label for="category">Select the category (optional):</label>
+        @if (_categories.Any())
+        {
+            <InputSelect id="category"
+                         class="form-select"
+                         @bind-Value="@Transaction.CategoryId">
+                <option value="">— No category —</option>
+                @foreach (var item in _categories)
+                {
+                    <option value="@item.Id">@item.Name</option>
+                }
+            </InputSelect>
+        }
+        else
+        {
+            <select id="category"
+                    class="form-select"
+                    disabled>
+                <option>— No categories available —</option>
+            </select>
+            <p class="createcategory">
+                You can create one <a href="/categories">here</a>.
+            </p>
+        }
     </div>
 
     <div class="mb-3">
         <label for="date">Enter the date:</label>
-        <input id="date"
-               class="form-control"
-               placeholder="Date"
-               type="date"
-               @bind="@Transaction.DateUtc">
+        <InputDate id="date"
+                   class="form-control"
+                   placeholder="Date"
+                   @bind-Value="Transaction.DateUtc">
+        </InputDate>
         <ValidationMessage For="@(() => Transaction.DateUtc)"/>
     </div>
 
@@ -67,8 +83,28 @@
         EditContext = new EditContext(Transaction);
         _validationMessageStore = new ValidationMessageStore(EditContext);
         SetValidationRules();
+        EditContext.OnFieldChanged += EditContextOnOnFieldChanged;
+
         _accounts = await Http.GetFromJsonAsync<List<AccountModel>>("account") ?? new();
         _categories = await Http.GetFromJsonAsync<List<CategoryModel>?>("category") ?? new List<CategoryModel>();
+    }
+
+    public void Dispose()
+    {
+        EditContext.OnFieldChanged -= EditContextOnOnFieldChanged;
+    }
+    
+    private void EditContextOnOnFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        _validationMessageStore.Clear(e.FieldIdentifier);
+        var rule = ValidationRules.FirstOrDefault(v => v.Accessor == e.FieldIdentifier.Model);
+
+        if (rule is not null && !rule.Satisfy())
+        {
+            _validationMessageStore.Add(rule.Accessor, rule.Message);
+        }
+
+        StateHasChanged();
     }
 
     private async Task UpdateTransactionAsync()
@@ -83,9 +119,9 @@
         {
             Id = Transaction.Id,
             AccountId = Transaction.AccountId,
-            Sum = Transaction.Sum,
+            Sum = Transaction.Sum!.Value,
             CategoryId = Transaction.CategoryId,
-            DateUtc = Transaction.DateUtc
+            DateUtc = Transaction.DateUtc!.Value
         });
 
         await BlazoredModal.CloseAsync();
@@ -108,13 +144,13 @@
         ValidationRules.Clear();
         ValidationRules.Add(new ValidationRuleModel
         {
-            Satisfy = () => Transaction.Sum != 0,
+            Satisfy = () => Transaction.Sum.HasValue && Transaction.Sum != 0,
             Accessor = () => Transaction.Sum,
             Message = "Sum must not be equal to 0"
         });
         ValidationRules.Add(new ValidationRuleModel
         {
-            Satisfy = () => Transaction.DateUtc != DateTime.MinValue,
+            Satisfy = () => Transaction.DateUtc.HasValue && Transaction.DateUtc != DateTime.MinValue,
             Accessor = () => Transaction.DateUtc,
             Message = "Date must be greater than 01.01.0001"
         });
